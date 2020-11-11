@@ -589,11 +589,9 @@ export default class Hanzi {
             });
         });
         // then enable current scene
-        setTimeout(()=>{
-            tv.forEach(m => {
-                m.enable();
-            })
-        }, 1000);
+        tv.forEach(m => {
+            m.enable();
+        })
     }
 
     ////////////////

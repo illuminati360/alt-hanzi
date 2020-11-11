@@ -104,7 +104,7 @@ export class GridMenu {
     private parentId: MRE.Guid;
 
     // debug
-    private name: string;
+    private _name: string;
     private defaultPlaneMaterial: MRE.Material;
 
     private _row: number;
@@ -127,6 +127,7 @@ export class GridMenu {
     private _curPageNum: number = 1;
 
     // get 
+    get name() {return this._name};
     get root() {return this._menu};
     get highlighted() {return this.isHighlighted};
     get coord() {return this.highlightedButtonCoord};
@@ -158,7 +159,7 @@ export class GridMenu {
         this.highlightMaterialId = options.highlightMaterialId;
         this.planeMeshId = options.planeMeshId;
         this.defaultPlaneMaterial = options.defaultPlaneMaterial; // debug
-        this.name = options.name;
+        this._name = options.name;
 
         this.parentId = (options.parentId == undefined) ? null : options.parentId;
 
