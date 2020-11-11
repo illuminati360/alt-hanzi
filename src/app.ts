@@ -15,6 +15,11 @@ export default class Hanzi {
     private assets: MRE.AssetContainer;
     private baseUrl: string;
 
+    private whiteMaterial: MRE.Material;
+    private lightGrayMaterial: MRE.Material;
+    private darkGrayMaterial: MRE.Material;
+    private tealMaterial: MRE.Material;
+    private redMaterial: MRE.Material;
     private root: MRE.Actor;
     private prefabs: Map<number, MRE.Prefab>;
 
@@ -56,6 +61,12 @@ export default class Hanzi {
         this.context = _context;
         this.baseUrl = _baseUrl;
         this.assets = new MRE.AssetContainer(this.context);
+
+        this.whiteMaterial = this.assets.createMaterial('white', { color: MRE.Color3.White() });
+        this.lightGrayMaterial = this.assets.createMaterial('light_gray', { color: MRE.Color3.LightGray() });
+        this.darkGrayMaterial = this.assets.createMaterial('dark_gray', { color: MRE.Color3.DarkGray() });
+        this.tealMaterial = this.assets.createMaterial('teal', { color: MRE.Color3.Teal() });
+        this.redMaterial = this.assets.createMaterial('red', { color: MRE.Color3.Red() });
 
         this.prefabs = new Map<number, MRE.Prefab>();
 
@@ -123,7 +134,7 @@ export default class Hanzi {
 
         // mainmenu button
         let mainMenuMeshId = this.assets.createBoxMesh('main_menu_btn_mesh', MAIN_MENU_CELL_WIDTH, MAIN_MENU_CELL_HEIGHT, MAIN_MENU_CELL_DEPTH).id;
-        let mainMenuDefaultMaterialId = this.assets.createMaterial('main_menu_default_btn_material', { color: MRE.Color3.LightGray() }).id;
+        let mainMenuDefaultMaterialId = this.lightGrayMaterial.id;
 
         let data = MAIN_MENU_ITEMS.map(t => [{
             text: t
@@ -185,9 +196,9 @@ export default class Hanzi {
         const PINYIN_MENU_CELL_SCALE = 1;
 
         let pinyinMenuMeshId = this.assets.createBoxMesh('pinyin_menu_btn_mesh', PINYIN_MENU_CELL_WIDTH, PINYIN_MENU_CELL_HEIGHT, PINYIN_MENU_CELL_DEPTH).id;
-        let pinyinMenuDefaultMaterialId = this.assets.createMaterial('pinyin_menu_default_btn_material', { color: MRE.Color3.LightGray() }).id;
+        let pinyinMenuDefaultMaterialId = this.lightGrayMaterial.id;
         let pinyinMenuHighlightMeshId = this.assets.createBoxMesh('pinyin_menu_highlight_mesh', PINYIN_MENU_CELL_WIDTH+PINYIN_MENU_CELL_MARGIN, PINYIN_MENU_CELL_HEIGHT+PINYIN_MENU_CELL_MARGIN, PINYIN_MENU_CELL_DEPTH/2).id;
-        let pinyinMenuHighlightMaterialId = this.assets.createMaterial('pinyin_menu_highlight_btn_material', { color: MRE.Color3.Red() }).id;
+        let pinyinMenuHighlightMaterialId = this.redMaterial.id;
 
         let initials = this.breakDown(this.pinyinDatabase.initials, PINYIN_MENU_DIMENSIONS.y);
         let finals = this.breakDown(this.pinyinDatabase.finals, PINYIN_MENU_DIMENSIONS.y);
@@ -249,7 +260,7 @@ export default class Hanzi {
         let PINYIN_HEAD_CELL_HEIGHT = this.pinyinMenu.boxHeight * 2 + this.pinyinMenu.margin;
         let PINYIN_HEAD_CELL_WIDTH = PINYIN_HEAD_CELL_HEIGHT;
         let pinyinHeadMeshId = this.assets.createBoxMesh('pinyin_head_mesh', PINYIN_HEAD_CELL_WIDTH, PINYIN_HEAD_CELL_HEIGHT, PINYIN_HEAD_CELL_DEPTH).id;
-        let pinyinHeadMaterialId = this.assets.createMaterial('pinyin_head_material', { color: MRE.Color3.Teal() }).id;;
+        let pinyinHeadMaterialId = this.tealMaterial.id;
 
         let data = PINYIN_HEAD_ITEMS.map(d=>[{text: d}]);
 
@@ -293,9 +304,9 @@ export default class Hanzi {
 
         // inventory info
         let pinyinToneMeshId = this.assets.createBoxMesh('pinyin_tone_mesh', PINYIN_TONE_CELL_WIDTH, PINYIN_TONE_CELL_HEIGHT, PINYIN_TONE_CELL_DEPTH).id;
-        let pinyinToneMaterialId = this.assets.createMaterial('pinyin_tone_material', { color: MRE.Color3.Teal() }).id;;
+        let pinyinToneMaterialId = this.tealMaterial.id;
         let pinyinToneHighlightMeshId = this.assets.createBoxMesh('pinyin_tone_highlight_mesh', PINYIN_TONE_CELL_WIDTH+PINYIN_TONE_CELL_MARGIN, PINYIN_TONE_CELL_HEIGHT+PINYIN_TONE_CELL_MARGIN, PINYIN_TONE_CELL_DEPTH/2).id;
-        let pinyinToneHighlightMaterialId = this.assets.createMaterial('pinyin_tone_highlight_btn_material', { color: MRE.Color3.Red() }).id;
+        let pinyinToneHighlightMaterialId = this.redMaterial.id;
 
         let data = [ PINYIN_TONE_ITEMS.map((d=>({text: d}))) ];
 
@@ -344,7 +355,7 @@ export default class Hanzi {
         const PINYIN_MENU_CONTROL_CELL_TEXT_HEIGHT = 0.05;
 
         let pinyinMenuControlMeshId = this.assets.createBoxMesh('pinyin_menu_control_btn_mesh', PINYIN_MENU_CONTROL_CELL_WIDTH, PINYIN_MENU_CONTROL_CELL_HEIGHT, PINYIN_MENU_CONTROL_CELL_DEPTH).id;
-        let pinyinMenuControlDefaultMaterialId = this.assets.createMaterial('pinyin_menu_control_default_btn_material', { color: MRE.Color3.DarkGray() }).id;
+        let pinyinMenuControlDefaultMaterialId = this.darkGrayMaterial.id;
 
         let data = [ PINYIN_MENU_CONTROL_ITEMS.map(t => ({
             text: t
@@ -409,7 +420,7 @@ export default class Hanzi {
         const w = this.pinyinTone.getMenuSize().width + this.pinyinTone.margin + this.pinyinMenuControlStrip.getMenuSize().width;
         const PINYIN_INFO_CELL_WIDTH = w;
         let pinyinInfoMeshId = this.assets.createBoxMesh('pinyin_info_mesh', PINYIN_INFO_CELL_WIDTH, PINYIN_INFO_CELL_HEIGHT, PINYIN_INFO_CELL_DEPTH).id;
-        let pinyinInfoMaterialId = this.assets.createMaterial('pinyin_info_material', { color: MRE.Color3.White() }).id;;
+        let pinyinInfoMaterialId = this.whiteMaterial.id;
 
         let data = [[{text: PINYIN_INFO_PLACE_HOLDER}]];
 
@@ -451,12 +462,12 @@ export default class Hanzi {
         const PHONETICS_TABLE_CELL_SCALE = 1;
 
         let phoneticsTableMeshId = this.assets.createBoxMesh('phonetics_table_btn_mesh', PHONETICS_TABLE_CELL_WIDTH, PHONETICS_TABLE_CELL_HEIGHT, PHONETICS_TABLE_CELL_DEPTH).id;
-        let phoneticsTableDefaultMaterialId = this.assets.createMaterial('phonetics_table_default_btn_material', { color: MRE.Color3.LightGray() }).id;
+        let phoneticsTableDefaultMaterialId = this.lightGrayMaterial.id;
         let phoneticsTableHighlightMeshId = this.assets.createBoxMesh('phonetics_table_highlight_mesh', PHONETICS_TABLE_CELL_WIDTH+PHONETICS_TABLE_CELL_MARGIN, PHONETICS_TABLE_CELL_HEIGHT+PHONETICS_TABLE_CELL_MARGIN, PHONETICS_TABLE_CELL_DEPTH/2).id;
-        let phoneticsTableHighlightMaterialId = this.assets.createMaterial('phonetics_table_highlight_btn_material', { color: MRE.Color3.Red() }).id;
+        let phoneticsTableHighlightMaterialId = this.redMaterial.id;
         let phoneticsTablePlaneMeshId = this.assets.createPlaneMesh('plane_mesh', PHONETICS_TABLE_CELL_WIDTH, PHONETICS_TABLE_CELL_HEIGHT).id;
-        let phoneticsTablePlaneBodyMaterial = this.assets.createMaterial('body_btn_material', { color: MRE.Color3.LightGray() });
-        let phoneticsTablePlaneHeadMaterial = this.assets.createMaterial('head_btn_material', { color: MRE.Color3.Teal() });
+        let phoneticsTablePlaneBodyMaterial = this.lightGrayMaterial;
+        let phoneticsTablePlaneHeadMaterial = this.tealMaterial.id;
 
         let head = [ '', ...this.pinyinDatabase.cols ];
         let body = this.pinyinDatabase.phonetics.map((d: string[],i: number) => {return [this.pinyinDatabase.rows[i], ...d]});
@@ -518,11 +529,11 @@ export default class Hanzi {
         const COMMON_HANZI_MENU_CELL_SCALE = 1;
 
         let commonHanziMenuMeshId = this.assets.createBoxMesh('common_hanzi_menu_btn_mesh', COMMON_HANZI_MENU_CELL_WIDTH, COMMON_HANZI_MENU_CELL_HEIGHT, COMMON_HANZI_MENU_CELL_DEPTH).id;
-        let commonHanziMenuDefaultMaterialId = this.assets.createMaterial('common_hanzi_menu_default_btn_material', { color: MRE.Color3.LightGray() }).id;
+        let commonHanziMenuDefaultMaterialId = this.lightGrayMaterial.id;
         let commonHanziMenuHighlightMeshId = this.assets.createBoxMesh('common_hanzi_menu_highlight_mesh', COMMON_HANZI_MENU_CELL_WIDTH+COMMON_HANZI_MENU_CELL_MARGIN, COMMON_HANZI_MENU_CELL_HEIGHT+COMMON_HANZI_MENU_CELL_MARGIN, COMMON_HANZI_MENU_CELL_DEPTH/2).id;
-        let commonHanziMenuHighlightMaterialId = this.assets.createMaterial('common_hanzi_menu_highlight_btn_material', { color: MRE.Color3.Red() }).id;
+        let commonHanziMenuHighlightMaterialId = this.redMaterial.id;
         let commonHanziMenuPlaneMeshId = this.assets.createPlaneMesh('common_hanzi_menu_plane_mesh', COMMON_HANZI_MENU_CELL_WIDTH, COMMON_HANZI_MENU_CELL_HEIGHT).id;
-        let commonHanziMenuPlaneDefaultMaterial = this.assets.createMaterial('common_hanzi_menu_plane_material', { color: MRE.Color3.DarkGray() });
+        let commonHanziMenuPlaneDefaultMaterial = this.darkGrayMaterial;
 
         this.commonHanziMenu = new GridMenu(this.context, {
             // logic
