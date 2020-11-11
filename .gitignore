@@ -1,0 +1,10 @@
+node_modules/
+build/
+*.tsbuildinfo
+.eslintcache
+.env
+*.log
+.package-lock
+.deployment
+*.blend1
+.DS_Store
