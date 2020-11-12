@@ -1,8 +1,18 @@
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
-import { Transform, Vector2 } from '@microsoft/mixed-reality-extension-sdk';
+import { AlphaMode, Material, Transform, Vector2 } from '@microsoft/mixed-reality-extension-sdk';
 import { CellData, GridMenu } from './GUI/gridMenu';
 import { PinyinDatabase } from './database';
-import { getGltf, joinUrl } from './utils';
+import { checkUserName, getGltf, joinUrl, lineBreak } from './utils';
+import { NumberInput } from './GUI/NumberInput';
+
+const OWNER_NAME = process.env['OWNER_NAME'];
+const THUMBNAILS_BASE_URL = "https://raw.githubusercontent.com/illuminati360/alt-hanzi-data/master/thumbnails/";
+const MODELS_BASE_URL = "https://raw.githubusercontent.com/illuminati360/alt-hanzi-data/master/models/";
+
+const HANZI_MODEL_SCALE = 0.0001*8;
+const HANZI_MODEL_ROTATION = MRE.Quaternion.FromEulerAngles(0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians, -180 * MRE.DegreesToRadians);
+
+const SCALE_STEP = 0.025/1000;
 
 const gltfBoundingBox = require('gltf-bounding-box');
 
@@ -31,15 +41,25 @@ export default class Hanzi {
     private baseUrl: string;
 
     private root: MRE.Actor;
+    private home: MRE.Actor;
+    private textures: Map<string, MRE.Texture>;
+    private materials: Map<string, MRE.Material>;
     private prefabs: Map<number, MRE.Prefab>;
     private dimensions: Map<number, BoundingBoxDimensions>;
+    private highlightBoxes: Map<MRE.Guid, MRE.Actor>;
+    private spawnedHanzi: Map<MRE.Guid, string>;
 
     private pinyinDatabase: PinyinDatabase;
+    private characters: string[];
 
     private pinyinSound: MRE.Sound;
     private sprite: any;
+    private boundingBoxMaterial: MRE.Material;
+    private invisibleMaterial: MRE.Material;
 
     private pinyinInfoText: string = '';
+
+    private highlightedActor: MRE.Actor;
 
     // scene
     private scenes: Array<[string, GridMenu[]]> = [];
@@ -63,6 +83,9 @@ export default class Hanzi {
 
     // commonly used
     private commonHanziMenu: GridMenu;
+    private hanziInfoPanel: GridMenu;
+    private commonHanziMenuControlStrip: GridMenu;
+    private numberInput: NumberInput;
 
     // hanzi input
     private hanzi: GridMenu;
@@ -72,6 +95,14 @@ export default class Hanzi {
         this.context = _context;
         this.baseUrl = _baseUrl;
         this.assets = new MRE.AssetContainer(this.context);
+
+        this.boundingBoxMaterial = this.assets.createMaterial('bounding_box_material', { color: MRE.Color4.FromColor3(MRE.Color3.Red(), 0.4), alphaMode: MRE.AlphaMode.Blend} )
+        this.invisibleMaterial = this.assets.createMaterial('bounding_box_material', { color: MRE.Color4.FromColor3(MRE.Color3.Red(), 0), alphaMode: MRE.AlphaMode.Blend} )
+
+        this.textures = new Map<string, MRE.Texture>();
+        this.materials = new Map<string, MRE.Material>();
+        this.highlightBoxes = new Map<MRE.Guid, MRE.Actor>();
+        this.spawnedHanzi = new Map<MRE.Guid, string>();
 
         this.prefabs = new Map<number, MRE.Prefab>();
         this.dimensions = new Map<number, BoundingBoxDimensions>();
@@ -84,7 +115,12 @@ export default class Hanzi {
         this.loadData();
         this.loadSounds();
 
+
+        // root actor
         this.createRoot();
+        // home button
+        this.createHomeButton();
+
         // menus for main_menu scene
         this.createMainMenu();
 
@@ -97,15 +133,20 @@ export default class Hanzi {
 
         // menus for phonetics_table scene
         // this.createPhoneticsTable();
+        this.createPhoneticsPanel();
 
         // menus for common_hanzi_menu scene
         this.createCommonHanziMenu();
+        this.createHanziInfoPanel();
+        this.createCommonHanziMenuControlStrip();
+        this.createNumberInput();
+        this.updateCommonHanziMenu( this.getCommonHanziPageData() );
 
         // scenes
         this.scenes.push(['main_menu', [this.mainMenu]]);
         this.scenes.push(['pinyin_menu', [this.pinyinMenu, this.pinyinMenuControlStrip, this.pinyinHead, this.pinyinTone, this.pinyinInfoPanel]]);
-        // this.scenes.push(['phonetics_table', [this.phoneticsTable]]);
-        this.scenes.push(['common_hanzi_menu', [this.commonHanziMenu]]);
+        this.scenes.push(['phonetics_table', [this.phoneticsTable]]);
+        this.scenes.push(['common_hanzi_menu', [this.commonHanziMenu, this.hanziInfoPanel, this.commonHanziMenuControlStrip, this.numberInput]]);
 
         // hide menus on game start up
         this.switchScene('main_menu');
@@ -113,11 +154,17 @@ export default class Hanzi {
 
     private loadData(){
         this.pinyinDatabase = new PinyinDatabase();
+        this.characters = this.pinyinDatabase.characters;
     }
 
     private loadSounds(){
         this.pinyinSound = this.assets.createSound('joined', { uri: `${this.baseUrl}/pinyin.ogg` });
         this.sprite = require('../public/sprite.json');
+    }
+
+    private getCommonHanziPageData(){
+        let pageSize = this.commonHanziMenu.row * this.commonHanziMenu.col;
+        return this.characters.slice(pageSize*(this.commonHanziMenu.curPageNum-1), pageSize*this.commonHanziMenu.curPageNum);
     }
 
     private createRoot(){
@@ -130,10 +177,41 @@ export default class Hanzi {
         });
     }
 
+    private createHomeButton(){
+        const RADIUS = 0.02;
+        this.home = MRE.Actor.CreatePrimitive(this.assets, {
+            definition: {
+                shape: MRE.PrimitiveShape.Sphere,
+                dimensions: {x: RADIUS, y: RADIUS, z: RADIUS}
+            },
+            addCollider: true,
+            actor: {
+                name: 'home_button',
+                parentId: this.root.id,
+                transform: {
+                    local: {
+                        position: {x: -RADIUS, y: -RADIUS, z: 0},
+                        scale: {x: 1, y: 1, z: 1}
+                    }
+                },
+                appearance: {
+                    enabled: true,
+                    materialId: this.assets.createMaterial('home_button_material', { color: MRE.Color3.LightGray()}).id
+                }
+            },
+        });
+        let buttonBehavior = this.home.setBehavior(MRE.ButtonBehavior);
+        buttonBehavior.onClick((user,__)=>{
+            if(checkUserName(user, OWNER_NAME)){
+                this.switchScene('main_menu');
+            }
+        });
+    }
+
     private createMainMenu(){
         const MAIN_MENU_ITEMS = ['pinyin', 'phonetics', 'radicals', 'common', 'writer'];
-        const MAIN_MENU_CELL_WIDTH = 0.3;
-        const MAIN_MENU_CELL_HEIGHT = 0.1;
+        const MAIN_MENU_CELL_WIDTH = 0.6;
+        const MAIN_MENU_CELL_HEIGHT = 0.2;
         const MAIN_MENU_CELL_DEPTH = 0.005;
         const MAIN_MENU_CELL_MARGIN = 0.01;
         const MAIN_MENU_CELL_SCALE = 1;
@@ -169,7 +247,8 @@ export default class Hanzi {
                 width: MAIN_MENU_CELL_WIDTH,
                 height: MAIN_MENU_CELL_HEIGHT,
                 depth: MAIN_MENU_CELL_DEPTH,
-                scale: MAIN_MENU_CELL_SCALE
+                scale: MAIN_MENU_CELL_SCALE,
+                textHeight: 0.1,
             },
         });
 
@@ -181,13 +260,12 @@ export default class Hanzi {
                     this.switchScene('pinyin_menu');
                     break;
                 case MAIN_MENU_ITEMS.indexOf('phonetics'):
-                    // this.switchScene('phonetics_table');
+                    this.switchScene('phonetics_table');
                     break;
                 case MAIN_MENU_ITEMS.indexOf('common'):
                     this.switchScene('common_hanzi_menu');
                     break;
                 case MAIN_MENU_ITEMS.indexOf('writer'):
-                    this.spawnItem(0);
                     break;
             }
         });
@@ -526,12 +604,56 @@ export default class Hanzi {
         });
     }
 
+    private createPhoneticsPanel(){
+        const PHONETICS_PANEL_DIMENSIONS = new Vector2(this.pinyinDatabase.rowNum+1, this.pinyinDatabase.colNum+1);
+        const PHONETICS_PANEL_CELL_WIDTH = 0.07;
+        const PHONETICS_PANEL_CELL_DEPTH = 0.005;
+        const PHONETICS_PANEL_CELL_MARGIN = 0.003;
+        const PHONETICS_PANEL_CELL_SCALE = 1;
+        const w = PHONETICS_PANEL_CELL_WIDTH*PHONETICS_PANEL_DIMENSIONS.y;
+        const h = w/3067*1673;
+
+        let phoneticsPanelMeshId = this.assets.createBoxMesh('phonetics_panel_btn_mesh', w, h, PHONETICS_PANEL_CELL_DEPTH).id;
+        let phoneticsPanelMaterialId = this.assets.createMaterial('phonetics_panel_default_btn_material', { color: MRE.Color3.LightGray() }).id;
+        let phoneticsPanelPlaneMeshId = this.assets.createPlaneMesh('phonetics_panel_plane_mesh', w, h).id;
+        let phoneticsPanleTexture = this.assets.createTexture('phonetics_panel_texture', {uri: 'phonetics.png'});
+        let phoneticsPanelPlaneMaterial = this.assets.createMaterial('phonetics_panel_material', {mainTextureId: phoneticsPanleTexture.id});
+
+        let data = [[{text: '', material: phoneticsPanelPlaneMaterial}]];
+
+        this.phoneticsTable = new GridMenu(this.context, {
+            data,
+            // logic
+            name: 'phonetics table',
+            title: 'The Pinyin Phonetics Table',
+            shape: {
+                row: 1,
+                col: 1
+            },
+            // asset
+            meshId: phoneticsPanelMeshId,
+            defaultMaterialId: phoneticsPanelMaterialId,
+            planeMeshId: phoneticsPanelPlaneMeshId,
+            defaultPlaneMaterial: phoneticsPanelPlaneMaterial,
+            // control
+            parentId: this.root.id,
+            // dimensions
+            margin: PHONETICS_PANEL_CELL_MARGIN,
+            box: {
+                width: w,
+                height: h,
+                depth: PHONETICS_PANEL_CELL_DEPTH,
+                scale: PHONETICS_PANEL_CELL_SCALE
+            }
+        });
+    }
+
     private createCommonHanziMenu(){
         const COMMON_HANZI_MENU_DIMENSIONS = new Vector2(8, 8);
-        const COMMON_HANZI_MENU_CELL_WIDTH = 0.1;
-        const COMMON_HANZI_MENU_CELL_HEIGHT = 0.1;
+        const COMMON_HANZI_MENU_CELL_WIDTH = 0.2;
+        const COMMON_HANZI_MENU_CELL_HEIGHT = 0.2;
         const COMMON_HANZI_MENU_CELL_DEPTH = 0.005;
-        const COMMON_HANZI_MENU_CELL_MARGIN = 0.003;
+        const COMMON_HANZI_MENU_CELL_MARGIN = 0.01;
         const COMMON_HANZI_MENU_CELL_SCALE = 1;
 
         let commonHanziMenuMeshId = this.assets.createBoxMesh('common_hanzi_menu_btn_mesh', COMMON_HANZI_MENU_CELL_WIDTH, COMMON_HANZI_MENU_CELL_HEIGHT, COMMON_HANZI_MENU_CELL_DEPTH).id;
@@ -566,8 +688,8 @@ export default class Hanzi {
                 depth: COMMON_HANZI_MENU_CELL_DEPTH,
                 scale: COMMON_HANZI_MENU_CELL_SCALE,
                 textColor: MRE.Color3.Black(),
-                textHeight: 0.01,
-                textAnchor: MRE.TextAnchorLocation.MiddleCenter
+                textHeight: 0.008,
+                textAnchor: MRE.TextAnchorLocation.TopLeft
             },
             highlight: {
                 depth: COMMON_HANZI_MENU_CELL_DEPTH/2
@@ -577,12 +699,244 @@ export default class Hanzi {
                 height: COMMON_HANZI_MENU_CELL_HEIGHT
             },
         });
+        this.commonHanziMenu.offsetLabels({x: -COMMON_HANZI_MENU_CELL_WIDTH/2, y: COMMON_HANZI_MENU_CELL_HEIGHT/2});
         this.commonHanziMenu.addBehavior((coord: Vector2, name: string, user: MRE.User) => {
             if (this.currentScene != 'common_hanzi_menu') { return; }
             this.commonHanziMenu.highlight(coord);
+            let index = this.commonHanziMenu.getHighlightedIndex(this.commonHanziMenu.coord);
+            this.updateHanziInfoPanel(index);
         });
     }
 
+    private createHanziInfoPanel(){
+        const HANZI_INFO_CELL_HEIGHT = this.commonHanziMenu.boxWidth*3 + this.commonHanziMenu.margin*2;
+        const HANZI_INFO_CELL_DEPTH = 0.005;
+        const HANZI_INFO_CELL_MARGIN = 0.005;
+        const HANZI_INFO_CELL_SCALE = 1;
+        const HANZI_INFO_CELL_TEXT_HEIGHT = 0.045;
+
+        const HANZI_INFO_PLANE_HEIGHT = HANZI_INFO_CELL_HEIGHT;
+        const HANZI_INFO_PLANE_WIDTH = HANZI_INFO_PLANE_HEIGHT;
+
+        // inventory info
+        const w = this.commonHanziMenu.getMenuSize().width;
+        const HANZI_INFO_CELL_WIDTH = w;
+        let hanziInfoMeshId = this.assets.createBoxMesh('hanzi_info_mesh', HANZI_INFO_CELL_WIDTH, HANZI_INFO_CELL_HEIGHT, HANZI_INFO_CELL_DEPTH).id;
+        let hanziInfoMaterialId = this.assets.createMaterial('hanzi_info_material', { color: MRE.Color3.White() }).id;;
+        let hanziInfoPlaneMeshId = this.assets.createPlaneMesh('hanzi_info_plane_mesh', HANZI_INFO_PLANE_WIDTH, HANZI_INFO_PLANE_HEIGHT).id;
+        let hanziInfoPlaneMaterial = this.assets.createMaterial('hanzi_info_material', { color: MRE.Color3.LightGray()});
+
+        let data = [[{text: ''}]];
+
+        this.hanziInfoPanel = new GridMenu(this.context, {
+            data,
+            // logic
+            shape: {
+                row: 1,
+                col: 1
+            },
+            // assets
+            meshId: hanziInfoMeshId,
+            defaultMaterialId: hanziInfoMaterialId,
+            planeMeshId: hanziInfoPlaneMeshId,
+            defaultPlaneMaterial: hanziInfoPlaneMaterial,
+            // control
+            parentId: this.root.id,
+            // transform
+            offset: {
+                x: 0,
+                y: -(HANZI_INFO_CELL_HEIGHT + HANZI_INFO_CELL_MARGIN)
+            },
+            // dimensions
+            box: {
+                width: HANZI_INFO_CELL_WIDTH,
+                height: HANZI_INFO_CELL_HEIGHT,
+                depth: HANZI_INFO_CELL_DEPTH,
+                scale: HANZI_INFO_CELL_SCALE,
+                textHeight: HANZI_INFO_CELL_TEXT_HEIGHT
+            },
+            plane: {
+                width: HANZI_INFO_PLANE_WIDTH,
+                height: HANZI_INFO_PLANE_HEIGHT
+            },
+            margin: HANZI_INFO_CELL_MARGIN,
+        });
+        this.hanziInfoPanel.planesAlignLeft();
+        this.hanziInfoPanel.labelsRightToPlane();
+    }
+
+    private createCommonHanziMenuControlStrip(){
+        const COMMON_HANZI_MENU_CONTROL_ITEMS = ['Search', 'Goto', 'Prev', 'Next', 'Spawn', 'Delete'];
+        const COMMON_HANZI_MENU_CONTROL_CELL_MARGIN = 0.0075;
+        const COMMON_HANZI_MENU_CONTROL_CELL_WIDTH = (this.commonHanziMenu.getMenuSize().width + COMMON_HANZI_MENU_CONTROL_CELL_MARGIN)/COMMON_HANZI_MENU_CONTROL_ITEMS.length - COMMON_HANZI_MENU_CONTROL_CELL_MARGIN;
+        const COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT = this.commonHanziMenu.boxHeight;
+        const COMMON_HANZI_MENU_CONTROL_CELL_DEPTH = 0.0005;
+        const COMMON_HANZI_MENU_CONTROL_CELL_SCALE = 1;
+        const COMMON_HANZI_MENU_CONTROL_CELL_TEXT_HEIGHT = 0.05;
+
+        let commonHanziMenuControlMeshId = this.assets.createBoxMesh('pinyin_menu_control_btn_mesh', COMMON_HANZI_MENU_CONTROL_CELL_WIDTH, COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT, COMMON_HANZI_MENU_CONTROL_CELL_DEPTH).id;
+        let commonHanziMenuControlDefaultMaterialId = this.assets.createMaterial('pinyin_menu_control_default_btn_material', { color: MRE.Color3.DarkGray() }).id;
+
+        let data = [ COMMON_HANZI_MENU_CONTROL_ITEMS.map(t => ({
+            text: t
+        })) ];
+
+        this.commonHanziMenuControlStrip = new GridMenu(this.context, {
+            // logic
+            data,
+            shape: {
+                row: 1,
+                col: COMMON_HANZI_MENU_CONTROL_ITEMS.length
+            },
+            // assets
+            meshId: commonHanziMenuControlMeshId,
+            defaultMaterialId: commonHanziMenuControlDefaultMaterialId,
+            // control
+            parentId: this.root.id,
+            // transform
+            offset: {
+                x: 0,
+                y: -(this.hanziInfoPanel.getMenuSize().height + this.hanziInfoPanel.margin + COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT + COMMON_HANZI_MENU_CONTROL_CELL_MARGIN)
+            },
+            // dimensions
+            margin: COMMON_HANZI_MENU_CONTROL_CELL_MARGIN,
+            box: {
+                width: COMMON_HANZI_MENU_CONTROL_CELL_WIDTH,
+                height: COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT,
+                depth: COMMON_HANZI_MENU_CONTROL_CELL_DEPTH,
+                scale: COMMON_HANZI_MENU_CONTROL_CELL_SCALE,
+                textHeight: COMMON_HANZI_MENU_CONTROL_CELL_TEXT_HEIGHT,
+                textColor: MRE.Color3.White()
+            },
+        });
+        this.commonHanziMenuControlStrip.addBehavior((coord: Vector2, name: string, user: MRE.User) => {
+            if (this.currentScene != 'common_hanzi_menu') { return; }
+            let col = coord.y;
+            switch(col){
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Search'):
+                    user.prompt("Search Hanzi", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            this.searchHanzi(dialog.text);
+                            this.commonHanziMenu.resetPageNum();
+                            this.updateCommonHanziMenu( this.getCommonHanziPageData() );
+                        }
+                    });
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Goto'):
+                    user.prompt("Goto page", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let p = parseInt(dialog.text);
+                            if (p!==NaN){
+                                this.commonHanziMenu.setPageNum(p, this.characters.length);
+                                this.updateCommonHanziMenu( this.getCommonHanziPageData() );
+                            }
+                        }
+                    });
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Prev'):
+                    this.commonHanziMenu.decrementPageNum();
+                    this.updateCommonHanziMenu( this.getCommonHanziPageData() );
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Next'):
+                    this.commonHanziMenu.incrementPageNum( this.characters.length );
+                    this.updateCommonHanziMenu( this.getCommonHanziPageData() );
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Spawn'):
+                    let index = this.commonHanziMenu.getHighlightedIndex(this.commonHanziMenu.coord);
+                    this.spawnItem(index);
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Delete'):
+                    if (this.highlightedActor != null){
+                        this.deleteItem(this.highlightedActor);
+                    }
+                    break;
+            }
+        });
+    }
+
+    private createNumberInput(){
+        const NUMBER_INPUT_CELL_MARGIN = 0.005;
+        const NUMBER_INPUT_CELL_WIDTH = (this.commonHanziMenu.getMenuSize().width + NUMBER_INPUT_CELL_MARGIN)/3 - NUMBER_INPUT_CELL_MARGIN;
+        const NUMBER_INPUT_CELL_HEIGHT = 0.1;
+        const NUMBER_INPUT_CELL_DEPTH = 0.005;
+        const NUMBER_INPUT_CELL_SCALE = 1;
+        const NUMBER_INPUT_CELL_TEXT_HEIGHT = 0.05;
+
+        let numberInputMeshId = this.assets.createBoxMesh('number_input_btn_mesh', NUMBER_INPUT_CELL_WIDTH, NUMBER_INPUT_CELL_HEIGHT, NUMBER_INPUT_CELL_DEPTH).id;
+        let numberInputMaterialId = this.assets.createMaterial('number_input_btn_material', { color: MRE.Color3.LightGray() }).id;
+
+        let h1 = this.commonHanziMenuControlStrip.getMenuSize().height + this.commonHanziMenuControlStrip.margin;
+        let h2 = this.hanziInfoPanel.getMenuSize().height + this.hanziInfoPanel.margin;
+
+        this.numberInput = new NumberInput(this.context, {
+            // logic
+            shape: {
+                row: 1,
+                col: 3
+            },
+            // assets
+            meshId: numberInputMeshId,
+            defaultMaterialId: numberInputMaterialId,
+            // control
+            parentId: this.root.id,
+            // transform
+            offset: {
+                x: 0,
+                y: -(h1 + h2 + NUMBER_INPUT_CELL_MARGIN + NUMBER_INPUT_CELL_HEIGHT)
+            },
+            // dimensions
+            box: {
+                width: NUMBER_INPUT_CELL_WIDTH,
+                height: NUMBER_INPUT_CELL_HEIGHT,
+                depth: NUMBER_INPUT_CELL_DEPTH,
+                scale: NUMBER_INPUT_CELL_SCALE,
+                textHeight: NUMBER_INPUT_CELL_TEXT_HEIGHT
+            },
+            margin: NUMBER_INPUT_CELL_MARGIN,
+        });
+
+        this.numberInput.onIncrease(()=>{
+            if (this.highlightedActor != null){
+                let box = this.highlightBoxes.get(this.highlightedActor.id);
+                let scale = box.transform.local.scale;
+                scale.x += SCALE_STEP;
+                scale.y += SCALE_STEP;
+                scale.z += SCALE_STEP;
+                this.numberInput.updateText((scale.x/HANZI_MODEL_SCALE).toString());
+            }
+        });
+
+        this.numberInput.onDecrease(()=>{
+            if (this.highlightedActor != null){
+                let box = this.highlightBoxes.get(this.highlightedActor.id);
+                let scale = box.transform.local.scale;
+                scale.x -= SCALE_STEP;
+                scale.y -= SCALE_STEP;
+                scale.z -= SCALE_STEP;
+                this.numberInput.updateText((scale.x/HANZI_MODEL_SCALE).toString());
+            }
+        });
+        this.numberInput.onEdit((user)=>{
+            if (this.highlightedActor != null){
+                user.prompt("Change scale to", true).then((dialog) => {
+                    if (dialog.submitted) {
+                        let int = parseInt(dialog.text)*HANZI_MODEL_SCALE;
+                        if(int !== NaN){
+                            let box = this.highlightBoxes.get(this.highlightedActor.id);
+                            let scale = box.transform.local.scale;
+                            scale.x = int;
+                            scale.y = int;
+                            scale.z = int;
+                            this.numberInput.updateText((scale.x/HANZI_MODEL_SCALE).toString());
+                        }
+                    }
+                });
+            }
+        })
+    }
+
+    /////////////////
+    // scenes
     private switchScene(scene: string){
         if (this.currentScene == scene){
             return;
@@ -647,9 +1001,9 @@ export default class Hanzi {
             }
             else{
                 error = true;
-                this.pinyinInfoText = '';
-                this.pinyinMenu.highlight(this.pinyinMenu.coord, false);
             }
+            this.pinyinInfoText = '';
+            this.pinyinMenu.highlight(this.pinyinMenu.coord, false);
             break;
         default:
             this.pinyinInfoText += c;
@@ -667,7 +1021,32 @@ export default class Hanzi {
         this.pinyinInfoPanel.updateCells([[{text: text}]]);
     }
 
-    private playSound(text: string){        
+    private updateCommonHanziMenu(pageData: string[]){
+        let data = pageData.map(d => {
+            let code = d.charCodeAt(0).toString();
+            let url = new URL(`${code}.png`, THUMBNAILS_BASE_URL).toString();
+            return {
+                text: parseInt(code).toString(16).toUpperCase(),
+                material: this.loadMaterial(code, url)
+            }
+        });
+        this.commonHanziMenu.updateCells(this.commonHanziMenu.reshape(data));
+    }
+
+    private updateHanziInfoPanel(index: number){
+        let char = this.characters[index];
+        if (char === undefined) return;
+        let code = char.charCodeAt(0).toString();
+        let url = new URL(`${code}.png`, THUMBNAILS_BASE_URL).toString();
+        let info = this.pinyinDatabase.dictionary[char];
+        let desc = `PinYin: ${info.pinyin}\nStrokes: ${info.stroke}\nEnglish: ${info.english}`;
+        this.hanziInfoPanel.updateCells([[{
+            text: lineBreak(desc, 40),
+            material: this.loadMaterial(code, url)
+        }]]);
+    }
+
+    private playSound(text: string){
         let s = this.sprite[text];
         if (s === undefined) return;
         let m = this.root.startSound(this.pinyinSound.id, {
@@ -679,6 +1058,37 @@ export default class Hanzi {
         setTimeout(()=>{
           m.stop();
         }, parseInt(s[1]));
+    }
+
+    private searchHanzi(search: string = ''){
+        if(!search.length){
+            this.characters = this.pinyinDatabase.characters;
+        }else{
+            this.characters = this.pinyinDatabase.characters.filter((c: string) => {
+                return this.pinyinDatabase.dictionary[c].pinyin.includes(search);
+            });
+        }
+    }
+
+    ////////////////////
+    //// material
+    private loadMaterial(name: string, uri: string){
+        let texture;
+        if (!this.textures.has('texture_'+name)){
+            texture = this.assets.createTexture('texture_'+name, {uri});
+            this.textures.set('texture_'+name, texture);
+        }else{
+            texture = this.textures.get('texture_'+name);
+        }
+
+        let material;
+        if(!this.materials.has('material_'+name)){
+            material = this.assets.createMaterial('material_'+name, { color: MRE.Color3.White(), mainTextureId: texture.id });
+            this.materials.set('material_'+name, material);
+        }else{
+            material = this.materials.get('material_'+name);
+        }
+        return material;
     }
 
     private async loadGltf(id: number, uri: string){
@@ -696,32 +1106,18 @@ export default class Hanzi {
         }
         return this.prefabs.get(id);
     }
-    private async spawnItem(index: number){
-        console.log('spawn', index);
-        let uri = 'models/wo.glb'
-        let prefab = await this.loadGltf(index, uri);
-        let actor = MRE.Actor.CreateFromPrefab(this.context, {
-            prefabId: prefab.id,
-            actor: {
-                collider: { 
-                    geometry: { shape: MRE.ColliderType.Box },
-                    layer: MRE.CollisionLayer.Hologram
-                },
-                appearance: {
-                    enabled: true
-                },
-                transform:{
-                    local: {
-                        position: {x: 2, y: 2},
-                        scale: {x: 0.0001, y: 0.0001, z: 0.0001}
-                    }
-                },
-                grabbable: true
-            }
-        });
-        let dim = this.dimensions.get(index).dimensions;
-        let center = this.dimensions.get(index).center;
-        console.log(this.dimensions.get(index))
+    private async spawnItem(index: number, _transform?: MRE.ActorTransformLike){
+        let char = this.characters[index];
+        let id = this.pinyinDatabase.dictionary[char].id;
+        console.log('spawn', char);
+        if (char === undefined) return;
+
+        let code = char.charCodeAt(0).toString();
+        let url = new URL(`${code}.glb`, MODELS_BASE_URL).toString();
+        let prefab = await this.loadGltf(id, url);
+
+        let dim = this.dimensions.get(id).dimensions;
+        let center = this.dimensions.get(id).center;
         let box = MRE.Actor.CreatePrimitive(this.assets, {
             definition: {
                 shape: MRE.PrimitiveShape.Box,
@@ -729,19 +1125,72 @@ export default class Hanzi {
             },
             addCollider: true,
             actor: {
-                name: 'wo',
-                parentId: actor.id,
+                name: code,
                 transform: {
                     local: {
-                        position: {x: center.x, y: center.y, z: center.z},
-                        scale: {x: 1, y: 1, z: 1}
+                        position: {x: 4+center.x*HANZI_MODEL_SCALE, y: 4+center.y*HANZI_MODEL_SCALE, z: center.z*HANZI_MODEL_SCALE},
+                        scale: {x: HANZI_MODEL_SCALE, y: HANZI_MODEL_SCALE, z: HANZI_MODEL_SCALE},
+                        rotation: HANZI_MODEL_ROTATION
                     }
                 },
                 appearance: {
-                    enabled: false,
-                    materialId: this.assets.createMaterial('default_box_material', { color: MRE.Color3.Red()}).id
-                }
+                    materialId: this.invisibleMaterial.id
+                },
+                collider: {
+                    geometry: {
+                        shape: MRE.ColliderType.Auto
+                    }
+                },
+                grabbable: true
             },
         });
+
+        let actor = MRE.Actor.CreateFromPrefab(this.context, {
+            prefabId: prefab.id,
+            actor: {
+                parentId: box.id,
+                collider: { 
+                    geometry: { shape: MRE.ColliderType.Box },
+                    layer: MRE.CollisionLayer.Hologram
+                },
+                transform:{
+                    local: {
+                        position: {x: 4, y: 4, z: 0},
+                        scale: {x: 1, y: 1, z: 1}
+                    }
+                },
+                grabbable: true
+            }
+        });
+
+        // remember box
+        this.highlightBoxes.set(actor.id, box);
+
+        // add behavior
+        let buttonBehavior = box.setBehavior(MRE.ButtonBehavior);
+        buttonBehavior.onClick((user,__)=>{
+            if(checkUserName(user, OWNER_NAME)){
+                if (this.highlightedActor != actor){
+                    if (this.highlightedActor != null){
+                        this.highlightBoxes.get( this.highlightedActor.id ).appearance.material = this.invisibleMaterial;
+                    }
+                    box.appearance.material = this.boundingBoxMaterial;
+                    this.highlightedActor = actor;
+                }else{
+                    box.appearance.material = this.invisibleMaterial;
+                    this.highlightedActor = null;
+                }
+            }
+        });
+        
+        // remember model character
+        this.spawnedHanzi.set(box.id, char);
+    }
+
+    private deleteItem(actor: MRE.Actor){
+        let box = this.highlightBoxes.get(actor.id);
+        this.spawnedHanzi.delete(box.id);
+        actor.destroy();
+        if (box !== undefined) { box.destroy(); }
     }
 }

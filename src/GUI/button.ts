@@ -155,7 +155,7 @@ export class Button {
     }
 
     public labelRightToPlane(){
-        this._label.transform.local.position.x += (this.planeDimensions.width - this.buttonDimensions.width/2) + 0.01;
+        this._label.transform.local.position.x += (this.planeDimensions.width - this.buttonDimensions.width/2) + 0.05;
         this._label.text.anchor = MRE.TextAnchorLocation.MiddleLeft;
     }
 

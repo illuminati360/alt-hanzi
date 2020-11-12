@@ -3,6 +3,8 @@ export class PinyinDatabase{
     private pinyin: any;
     private trie: any;
     private _syllables: any;
+    private _dictionary: any;
+    private _characters: any;
 
     get syllables() {return this._syllables}
     get phonetics() {return this.pinyin.phonetics}
@@ -14,6 +16,8 @@ export class PinyinDatabase{
     get initials() {return this.components.initials.split(' ')}
     get finals() {return this.components.finals.split(' ')}
     get wholes() {return this.components.wholes.split(' ')}
+    get characters() {return this._characters}
+    get dictionary() {return this._dictionary}
 
     constructor(){
         this.components = ({
@@ -34,6 +38,8 @@ export class PinyinDatabase{
         }));
 
         this._syllables = [].concat(...this.pinyin.phonetics);
+        this._dictionary = require('../public/hanzi.json');
+        this._characters = Object.keys(this._dictionary).sort((a,b)=>{return this._dictionary[a].id - this._dictionary[b].id});
     }
 
     public find(s: string){

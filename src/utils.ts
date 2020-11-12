@@ -95,7 +95,7 @@ export function fetchBin(_url: string): Promise<any> {
 			if (statusCode !== 200) {
 				error = new Error('Request Failed.\n' +
 					`Status Code: ${statusCode}`);
-			} else if (!/^model\/gltf-binary/.test(contentType)) {
+			} else if (!/^model\/gltf-binary/.test(contentType) && !/^application\/octet-stream/.test(contentType)) {
 				error = new Error('Invalid content-type.\n' +
 					`Expected application/json but received ${contentType}`);
 			}
@@ -159,4 +159,17 @@ export async function getGltf(url: string){
 
 export function joinUrl(baseUrl: string, uri: string){
     return new URL(uri, baseUrl).toString();
+}
+
+export function lineBreak(text: string, break_len: number =28){
+	let ret = '';
+	let lines = text.split('\n');
+	lines.forEach((line,i) => {
+		ret += line.slice(0, break_len);
+		for (let i=1; i*break_len<line.length; i++){
+			ret += '\n-' + line.slice(i*break_len, (i+1)*break_len);
+		}
+		if (i < lines.length - 1) ret += '\n'
+	});
+	return ret;
 }
