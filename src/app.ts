@@ -4,6 +4,21 @@ import { CellData, GridMenu } from './GUI/gridMenu';
 import { PinyinDatabase } from './database';
 import { getGltf, joinUrl } from './utils';
 
+const gltfBoundingBox = require('gltf-bounding-box');
+
+type BoundingBoxDimensions = {
+    dimensions: {
+        width: number,
+        height: number,
+        depth: number
+    },
+    center: {
+        x: number,
+        y: number,
+        z: number
+    }
+}
+
 const PINYIN_INFO_PLACE_HOLDER = 'Awaiting Input';
 const PINYIN_INFO_ERROR_MESSAGE = 'No Such Syllable';
 
@@ -17,6 +32,7 @@ export default class Hanzi {
 
     private root: MRE.Actor;
     private prefabs: Map<number, MRE.Prefab>;
+    private dimensions: Map<number, BoundingBoxDimensions>;
 
     private pinyinDatabase: PinyinDatabase;
 
@@ -58,6 +74,7 @@ export default class Hanzi {
         this.assets = new MRE.AssetContainer(this.context);
 
         this.prefabs = new Map<number, MRE.Prefab>();
+        this.dimensions = new Map<number, BoundingBoxDimensions>();
 
         this.context.onStarted(() => this.init());
     }
@@ -630,9 +647,9 @@ export default class Hanzi {
             }
             else{
                 error = true;
+                this.pinyinInfoText = '';
+                this.pinyinMenu.highlight(this.pinyinMenu.coord, false);
             }
-            this.pinyinInfoText = '';
-            this.pinyinMenu.highlight(this.pinyinMenu.coord, false);
             break;
         default:
             this.pinyinInfoText += c;
@@ -668,20 +685,20 @@ export default class Hanzi {
         let url = joinUrl(this.baseUrl +'/', uri);
         if (!this.prefabs.has(id)){
             let obj = await getGltf(url);
-            // let dim = gltfBoundingBox.computeBoundings(obj);
-            // let dim = {dimensions: {width: 0, height: 0, depth: 0}, center: {x: 0, y: 0, z: 0} };
+            let dim = gltfBoundingBox.computeBoundings(obj);
             
             await this.assets.loadGltf(url)
                 .then(assets => {
                     this.prefabs.set(id, assets.find(a => a.prefab !== null) as MRE.Prefab);
-                    // this.dimensions.set(id, dim);
+                    this.dimensions.set(id, dim);
                 })
                 .catch(e => MRE.log.info("app", e));
         }
         return this.prefabs.get(id);
     }
     private async spawnItem(index: number){
-        let uri = 'models/25105.gltf'
+        console.log('spawn', index);
+        let uri = 'models/wo.glb'
         let prefab = await this.loadGltf(index, uri);
         let actor = MRE.Actor.CreateFromPrefab(this.context, {
             prefabId: prefab.id,
@@ -695,11 +712,36 @@ export default class Hanzi {
                 },
                 transform:{
                     local: {
-                        scale: {x: 1, y: 1, z: 1}
+                        position: {x: 2, y: 2},
+                        scale: {x: 0.0001, y: 0.0001, z: 0.0001}
                     }
                 },
                 grabbable: true
             }
+        });
+        let dim = this.dimensions.get(index).dimensions;
+        let center = this.dimensions.get(index).center;
+        console.log(this.dimensions.get(index))
+        let box = MRE.Actor.CreatePrimitive(this.assets, {
+            definition: {
+                shape: MRE.PrimitiveShape.Box,
+                dimensions: {x: dim.width, y: dim.height, z: dim.depth}
+            },
+            addCollider: true,
+            actor: {
+                name: 'wo',
+                parentId: actor.id,
+                transform: {
+                    local: {
+                        position: {x: center.x, y: center.y, z: center.z},
+                        scale: {x: 1, y: 1, z: 1}
+                    }
+                },
+                appearance: {
+                    enabled: false,
+                    materialId: this.assets.createMaterial('default_box_material', { color: MRE.Color3.Red()}).id
+                }
+            },
         });
     }
 }
