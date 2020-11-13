@@ -1,8 +1,10 @@
+import fs from 'fs';
+import path from 'path';
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
-import { AlphaMode, Material, Transform, Vector2 } from '@microsoft/mixed-reality-extension-sdk';
+import { Vector2 } from '@microsoft/mixed-reality-extension-sdk';
 import { CellData, GridMenu } from './GUI/gridMenu';
-import { PinyinDatabase } from './database';
-import { checkUserName, getGltf, joinUrl, lineBreak } from './utils';
+import { PinyinDatabase, levelData } from './database';
+import { checkUserName, fetchJSON, getGltf, joinUrl, lineBreak } from './utils';
 import { NumberInput } from './GUI/NumberInput';
 
 const OWNER_NAME = process.env['OWNER_NAME'];
@@ -44,13 +46,14 @@ export default class Hanzi {
     private home: MRE.Actor;
     private textures: Map<string, MRE.Texture>;
     private materials: Map<string, MRE.Material>;
-    private prefabs: Map<number, MRE.Prefab>;
-    private dimensions: Map<number, BoundingBoxDimensions>;
-    private highlightBoxes: Map<MRE.Guid, MRE.Actor>;
-    private spawnedHanzi: Map<MRE.Guid, string>;
+    private prefabs: Map<string, MRE.Prefab>;
+    private dimensions: Map<string, BoundingBoxDimensions>;
+    private highlightBoxes: Map<MRE.Actor, MRE.Actor>;
+    private spawnedHanzi: Map<MRE.Actor, string>;
 
     private pinyinDatabase: PinyinDatabase;
     private characters: string[];
+    private radicals: string[];
 
     private pinyinSound: MRE.Sound;
     private sprite: any;
@@ -60,6 +63,9 @@ export default class Hanzi {
     private pinyinInfoText: string = '';
 
     private highlightedActor: MRE.Actor;
+
+    private radicalPageNum: number;
+    private hanziPageNum: number;
 
     // scene
     private scenes: Array<[string, GridMenu[]]> = [];
@@ -78,17 +84,11 @@ export default class Hanzi {
     // phonetics table
     private phoneticsTable: GridMenu;
 
-    // radicals
-    private radicals: GridMenu;
-
     // commonly used
     private commonHanziMenu: GridMenu;
     private hanziInfoPanel: GridMenu;
     private commonHanziMenuControlStrip: GridMenu;
     private numberInput: NumberInput;
-
-    // hanzi input
-    private hanzi: GridMenu;
 
     // constructor
 	constructor(private _context: MRE.Context, private params: MRE.ParameterSet, _baseUrl: string) {
@@ -101,11 +101,11 @@ export default class Hanzi {
 
         this.textures = new Map<string, MRE.Texture>();
         this.materials = new Map<string, MRE.Material>();
-        this.highlightBoxes = new Map<MRE.Guid, MRE.Actor>();
-        this.spawnedHanzi = new Map<MRE.Guid, string>();
+        this.highlightBoxes = new Map<MRE.Actor, MRE.Actor>();
+        this.spawnedHanzi = new Map<MRE.Actor, string>();
 
-        this.prefabs = new Map<number, MRE.Prefab>();
-        this.dimensions = new Map<number, BoundingBoxDimensions>();
+        this.prefabs = new Map<string, MRE.Prefab>();
+        this.dimensions = new Map<string, BoundingBoxDimensions>();
 
         this.context.onStarted(() => this.init());
     }
@@ -146,6 +146,7 @@ export default class Hanzi {
         this.scenes.push(['main_menu', [this.mainMenu]]);
         this.scenes.push(['pinyin_menu', [this.pinyinMenu, this.pinyinMenuControlStrip, this.pinyinHead, this.pinyinTone, this.pinyinInfoPanel]]);
         this.scenes.push(['phonetics_table', [this.phoneticsTable]]);
+        this.scenes.push(['radical_menu', [this.commonHanziMenu, this.hanziInfoPanel, this.commonHanziMenuControlStrip, this.numberInput]]);
         this.scenes.push(['common_hanzi_menu', [this.commonHanziMenu, this.hanziInfoPanel, this.commonHanziMenuControlStrip, this.numberInput]]);
 
         // hide menus on game start up
@@ -155,16 +156,21 @@ export default class Hanzi {
     private loadData(){
         this.pinyinDatabase = new PinyinDatabase();
         this.characters = this.pinyinDatabase.characters;
+        this.radicals = this.pinyinDatabase.radicals;
     }
 
     private loadSounds(){
         this.pinyinSound = this.assets.createSound('joined', { uri: `${this.baseUrl}/pinyin.ogg` });
-        this.sprite = require('../public/sprite.json');
+        this.sprite = require('../public/json/sprite.json');
+    }
+
+    private getCharacters(){
+        return this.currentScene == 'radical_menu' ? this.radicals : this.characters;
     }
 
     private getCommonHanziPageData(){
         let pageSize = this.commonHanziMenu.row * this.commonHanziMenu.col;
-        return this.characters.slice(pageSize*(this.commonHanziMenu.curPageNum-1), pageSize*this.commonHanziMenu.curPageNum);
+        return this.getCharacters().slice(pageSize*(this.commonHanziMenu.curPageNum-1), pageSize*this.commonHanziMenu.curPageNum);
     }
 
     private createRoot(){
@@ -209,7 +215,7 @@ export default class Hanzi {
     }
 
     private createMainMenu(){
-        const MAIN_MENU_ITEMS = ['pinyin', 'phonetics', 'radicals', 'common', 'writer'];
+        const MAIN_MENU_ITEMS = ['Pin Yin', 'Phonetics', 'Radicals', 'Common', 'Writer'];
         const MAIN_MENU_CELL_WIDTH = 0.6;
         const MAIN_MENU_CELL_HEIGHT = 0.2;
         const MAIN_MENU_CELL_DEPTH = 0.005;
@@ -256,16 +262,29 @@ export default class Hanzi {
             if (this.currentScene != 'main_menu') { return; }
             let row = coord.x;
             switch(row){
-                case MAIN_MENU_ITEMS.indexOf('pinyin'):
+                case MAIN_MENU_ITEMS.indexOf('Pin Yin'):
                     this.switchScene('pinyin_menu');
                     break;
-                case MAIN_MENU_ITEMS.indexOf('phonetics'):
+                case MAIN_MENU_ITEMS.indexOf('Phonetics'):
                     this.switchScene('phonetics_table');
                     break;
-                case MAIN_MENU_ITEMS.indexOf('common'):
-                    this.switchScene('common_hanzi_menu');
+                case MAIN_MENU_ITEMS.indexOf('Radicals'):
+                    this.switchScene('radical_menu');
+                    this.hanziPageNum = this.commonHanziMenu.curPageNum;
+                    if (this.radicalPageNum !== undefined) {
+                        this.commonHanziMenu.setPageNum(this.radicalPageNum, this.getCharacters().length);
+                    }
+                    this.updateCommonHanziMenu( this.getCommonHanziPageData() );
                     break;
-                case MAIN_MENU_ITEMS.indexOf('writer'):
+                case MAIN_MENU_ITEMS.indexOf('Common'):
+                    this.switchScene('common_hanzi_menu');
+                    this.radicalPageNum = this.commonHanziMenu.curPageNum;
+                    if (this.hanziPageNum !== undefined) {
+                        this.commonHanziMenu.setPageNum(this.hanziPageNum, this.getCharacters().length);
+                    }
+                    this.updateCommonHanziMenu( this.getCommonHanziPageData() );
+                    break;
+                case MAIN_MENU_ITEMS.indexOf('Writer'):
                     break;
             }
         });
@@ -701,7 +720,7 @@ export default class Hanzi {
         });
         this.commonHanziMenu.offsetLabels({x: -COMMON_HANZI_MENU_CELL_WIDTH/2, y: COMMON_HANZI_MENU_CELL_HEIGHT/2});
         this.commonHanziMenu.addBehavior((coord: Vector2, name: string, user: MRE.User) => {
-            if (this.currentScene != 'common_hanzi_menu') { return; }
+            if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             this.commonHanziMenu.highlight(coord);
             let index = this.commonHanziMenu.getHighlightedIndex(this.commonHanziMenu.coord);
             this.updateHanziInfoPanel(index);
@@ -766,13 +785,13 @@ export default class Hanzi {
     }
 
     private createCommonHanziMenuControlStrip(){
-        const COMMON_HANZI_MENU_CONTROL_ITEMS = ['Search', 'Goto', 'Prev', 'Next', 'Spawn', 'Delete'];
+        const COMMON_HANZI_MENU_CONTROL_ITEMS = ['Search', 'Goto', 'Prev', 'Next', 'Spawn', 'Delete', 'Save', 'Load', 'Clear'];
         const COMMON_HANZI_MENU_CONTROL_CELL_MARGIN = 0.0075;
         const COMMON_HANZI_MENU_CONTROL_CELL_WIDTH = (this.commonHanziMenu.getMenuSize().width + COMMON_HANZI_MENU_CONTROL_CELL_MARGIN)/COMMON_HANZI_MENU_CONTROL_ITEMS.length - COMMON_HANZI_MENU_CONTROL_CELL_MARGIN;
         const COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT = this.commonHanziMenu.boxHeight;
         const COMMON_HANZI_MENU_CONTROL_CELL_DEPTH = 0.0005;
         const COMMON_HANZI_MENU_CONTROL_CELL_SCALE = 1;
-        const COMMON_HANZI_MENU_CONTROL_CELL_TEXT_HEIGHT = 0.05;
+        const COMMON_HANZI_MENU_CONTROL_CELL_TEXT_HEIGHT = 0.04;
 
         let commonHanziMenuControlMeshId = this.assets.createBoxMesh('pinyin_menu_control_btn_mesh', COMMON_HANZI_MENU_CONTROL_CELL_WIDTH, COMMON_HANZI_MENU_CONTROL_CELL_HEIGHT, COMMON_HANZI_MENU_CONTROL_CELL_DEPTH).id;
         let commonHanziMenuControlDefaultMaterialId = this.assets.createMaterial('pinyin_menu_control_default_btn_material', { color: MRE.Color3.DarkGray() }).id;
@@ -810,7 +829,7 @@ export default class Hanzi {
             },
         });
         this.commonHanziMenuControlStrip.addBehavior((coord: Vector2, name: string, user: MRE.User) => {
-            if (this.currentScene != 'common_hanzi_menu') { return; }
+            if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             let col = coord.y;
             switch(col){
                 case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Search'):
@@ -827,7 +846,7 @@ export default class Hanzi {
                         if (dialog.submitted) {
                             let p = parseInt(dialog.text);
                             if (p!==NaN){
-                                this.commonHanziMenu.setPageNum(p, this.characters.length);
+                                this.commonHanziMenu.setPageNum(p, this.getCharacters().length);
                                 this.updateCommonHanziMenu( this.getCommonHanziPageData() );
                             }
                         }
@@ -838,17 +857,41 @@ export default class Hanzi {
                     this.updateCommonHanziMenu( this.getCommonHanziPageData() );
                     break;
                 case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Next'):
-                    this.commonHanziMenu.incrementPageNum( this.characters.length );
+                    this.commonHanziMenu.incrementPageNum( this.getCharacters().length );
                     this.updateCommonHanziMenu( this.getCommonHanziPageData() );
                     break;
                 case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Spawn'):
                     let index = this.commonHanziMenu.getHighlightedIndex(this.commonHanziMenu.coord);
-                    this.spawnItem(index);
+                    let char = this.getCharacters()[index];
+                    this.spawnItem(char);
                     break;
                 case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Delete'):
                     if (this.highlightedActor != null){
                         this.deleteItem(this.highlightedActor);
                     }
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Save'):
+                    user.prompt("Save as:", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let filename = dialog.text;
+                            this.saveLevel(filename, user);
+                        }
+                    });
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Load'):
+                    user.prompt("Load from:", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let filename = dialog.text;
+                            this.loadLevel(filename, user);
+                        }
+                    });
+                    break;
+                case COMMON_HANZI_MENU_CONTROL_ITEMS.indexOf('Clear'):
+                    user.prompt("Clear level?", false).then((dialog) => {
+                        if (dialog.submitted) {
+                            this.clearLevel();
+                        }
+                    });
                     break;
             }
         });
@@ -896,8 +939,9 @@ export default class Hanzi {
         });
 
         this.numberInput.onIncrease(()=>{
+            if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             if (this.highlightedActor != null){
-                let box = this.highlightBoxes.get(this.highlightedActor.id);
+                let box = this.highlightBoxes.get(this.highlightedActor);
                 let scale = box.transform.local.scale;
                 scale.x += SCALE_STEP;
                 scale.y += SCALE_STEP;
@@ -907,8 +951,9 @@ export default class Hanzi {
         });
 
         this.numberInput.onDecrease(()=>{
+            if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             if (this.highlightedActor != null){
-                let box = this.highlightBoxes.get(this.highlightedActor.id);
+                let box = this.highlightBoxes.get(this.highlightedActor);
                 let scale = box.transform.local.scale;
                 scale.x -= SCALE_STEP;
                 scale.y -= SCALE_STEP;
@@ -917,12 +962,13 @@ export default class Hanzi {
             }
         });
         this.numberInput.onEdit((user)=>{
+            if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             if (this.highlightedActor != null){
                 user.prompt("Change scale to", true).then((dialog) => {
                     if (dialog.submitted) {
                         let int = parseInt(dialog.text)*HANZI_MODEL_SCALE;
                         if(int !== NaN){
-                            let box = this.highlightBoxes.get(this.highlightedActor.id);
+                            let box = this.highlightBoxes.get(this.highlightedActor);
                             let scale = box.transform.local.scale;
                             scale.x = int;
                             scale.y = int;
@@ -1034,7 +1080,7 @@ export default class Hanzi {
     }
 
     private updateHanziInfoPanel(index: number){
-        let char = this.characters[index];
+        let char = this.getCharacters()[index];
         if (char === undefined) return;
         let code = char.charCodeAt(0).toString();
         let url = new URL(`${code}.png`, THUMBNAILS_BASE_URL).toString();
@@ -1061,12 +1107,22 @@ export default class Hanzi {
     }
 
     private searchHanzi(search: string = ''){
-        if(!search.length){
-            this.characters = this.pinyinDatabase.characters;
+        if (this.currentScene == 'common_hanzi_menu'){
+            if(!search.length){
+                this.characters = this.pinyinDatabase.characters;
+            }else{
+                this.characters = this.pinyinDatabase.characters.filter((c: string) => {
+                    return this.pinyinDatabase.dictionary[c].pinyin.includes(search);
+                });
+            }
         }else{
-            this.characters = this.pinyinDatabase.characters.filter((c: string) => {
-                return this.pinyinDatabase.dictionary[c].pinyin.includes(search);
-            });
+            if(!search.length){
+                this.radicals = this.pinyinDatabase.radicals;
+            }else{
+                this.radicals = this.pinyinDatabase.radicals.filter((c: string) => {
+                    return this.pinyinDatabase.dictionary[c].pinyin.includes(search);
+                });
+            }
         }
     }
 
@@ -1091,33 +1147,45 @@ export default class Hanzi {
         return material;
     }
 
-    private async loadGltf(id: number, uri: string){
+    private async loadGltf(char: string, uri: string){
         let url = joinUrl(this.baseUrl +'/', uri);
-        if (!this.prefabs.has(id)){
+        if (!this.prefabs.has(char)){
             let obj = await getGltf(url);
             let dim = gltfBoundingBox.computeBoundings(obj);
             
             await this.assets.loadGltf(url)
                 .then(assets => {
-                    this.prefabs.set(id, assets.find(a => a.prefab !== null) as MRE.Prefab);
-                    this.dimensions.set(id, dim);
+                    this.prefabs.set(char, assets.find(a => a.prefab !== null) as MRE.Prefab);
+                    this.dimensions.set(char, dim);
                 })
                 .catch(e => MRE.log.info("app", e));
         }
-        return this.prefabs.get(id);
+        return this.prefabs.get(char);
     }
-    private async spawnItem(index: number, _transform?: MRE.ActorTransformLike){
-        let char = this.characters[index];
-        let id = this.pinyinDatabase.dictionary[char].id;
+    private async spawnItem(char: string, _transform?: MRE.ActorTransformLike, editor: boolean = true){
         console.log('spawn', char);
         if (char === undefined) return;
 
         let code = char.charCodeAt(0).toString();
         let url = new URL(`${code}.glb`, MODELS_BASE_URL).toString();
-        let prefab = await this.loadGltf(id, url);
+        let prefab = await this.loadGltf(char, url);
 
-        let dim = this.dimensions.get(id).dimensions;
-        let center = this.dimensions.get(id).center;
+        let dim = this.dimensions.get(char).dimensions;
+        let center = this.dimensions.get(char).center;
+
+        let size = this.commonHanziMenu.getMenuSize();
+        let pos = {x: size.width + 0.05 + dim.width*HANZI_MODEL_SCALE/2, y: -dim.height*HANZI_MODEL_SCALE/2, z: 0};
+        let transform = (_transform !== undefined) ? _transform : {
+            app: {
+                position: {x: pos.x, y: pos.y, z: 0}
+            },
+            local: {
+                position: {x: pos.x, y: pos.y, z: 0},
+                scale: {x: HANZI_MODEL_SCALE, y: HANZI_MODEL_SCALE, z: HANZI_MODEL_SCALE},
+                rotation: HANZI_MODEL_ROTATION
+            }
+        }; 
+
         let box = MRE.Actor.CreatePrimitive(this.assets, {
             definition: {
                 shape: MRE.PrimitiveShape.Box,
@@ -1126,13 +1194,7 @@ export default class Hanzi {
             addCollider: true,
             actor: {
                 name: code,
-                transform: {
-                    local: {
-                        position: {x: 4, y: 4, z: 0},
-                        scale: {x: HANZI_MODEL_SCALE, y: HANZI_MODEL_SCALE, z: HANZI_MODEL_SCALE},
-                        rotation: HANZI_MODEL_ROTATION
-                    }
-                },
+                transform,
                 appearance: {
                     materialId: this.invisibleMaterial.id
                 },
@@ -1141,9 +1203,12 @@ export default class Hanzi {
                         shape: MRE.ColliderType.Auto
                     }
                 },
-                grabbable: true
+                grabbable: editor ? true : false
             },
         });
+
+        // subscribe to box transform
+        if (editor) box.subscribe('transform');
 
         let actor = MRE.Actor.CreateFromPrefab(this.context, {
             prefabId: prefab.id,
@@ -1155,42 +1220,94 @@ export default class Hanzi {
                 },
                 transform:{
                     local: {
-                        position: {x: center.x, y: -center.x/dim.width*dim.height, z: 0},
+                        position: {x: center.x, y: -center.z, z: 0},
                         scale: {x: 1, y: 1, z: 1}
                     }
                 },
-                grabbable: true
+                grabbable: editor ? true : false
             }
         });
 
         // remember box
-        this.highlightBoxes.set(actor.id, box);
-
-        // add behavior
-        let buttonBehavior = box.setBehavior(MRE.ButtonBehavior);
-        buttonBehavior.onClick((user,__)=>{
-            if(checkUserName(user, OWNER_NAME)){
-                if (this.highlightedActor != actor){
-                    if (this.highlightedActor != null){
-                        this.highlightBoxes.get( this.highlightedActor.id ).appearance.material = this.invisibleMaterial;
-                    }
-                    box.appearance.material = this.boundingBoxMaterial;
-                    this.highlightedActor = actor;
-                }else{
-                    box.appearance.material = this.invisibleMaterial;
-                    this.highlightedActor = null;
-                }
-            }
-        });
-        
+        this.highlightBoxes.set(actor, box);
+            
         // remember model character
-        this.spawnedHanzi.set(box.id, char);
+        this.spawnedHanzi.set(box, char);
+        if (editor){
+            // add behavior
+            let buttonBehavior = box.setBehavior(MRE.ButtonBehavior);
+            buttonBehavior.onClick((user,__)=>{
+                if(checkUserName(user, OWNER_NAME)){
+                    if (this.highlightedActor != actor){
+                        if (this.highlightedActor != null){
+                            this.highlightBoxes.get( this.highlightedActor ).appearance.material = this.invisibleMaterial;
+                        }
+                        box.appearance.material = this.boundingBoxMaterial;
+                        this.highlightedActor = actor;
+                    }else{
+                        box.appearance.material = this.invisibleMaterial;
+                        this.highlightedActor = null;
+                    }
+                }
+            });
+        }
     }
 
     private deleteItem(actor: MRE.Actor){
-        let box = this.highlightBoxes.get(actor.id);
-        this.spawnedHanzi.delete(box.id);
+        let box = this.highlightBoxes.get(actor);
+        box.unsubscribe('transform');
+
+        this.spawnedHanzi.delete(box);
         actor.destroy();
         if (box !== undefined) { box.destroy(); }
+    }
+
+    private saveLevel(filename: string, user: MRE.User){
+        let level: levelData = [];
+        this.spawnedHanzi.forEach((v,k) => {
+            level.push({
+                char: v,
+                transform: k.transform
+            });
+        });
+
+        let filePath = `./public/levels/${path.basename(filename)}.json`;
+        if (fs.existsSync(filePath)){
+            user.prompt("File already exists, overwrite?").then((dialog) => {
+                if (dialog.submitted) {
+                    this.writeLevel(filePath, level, user);
+                }
+            });
+        }
+        else{
+            this.writeLevel(filePath, level, user);
+        }
+    }
+
+    private writeLevel(filePath: string, level: levelData, user: MRE.User){
+        fs.writeFile(filePath, JSON.stringify(level), (err) => {
+            if(err){ console.log(err); user.prompt("Failed")}
+            else{ user.prompt("Saved"); }
+        });
+    }
+
+    private async loadLevel(filename: string, user: MRE.User, editor: boolean = true){
+        let relativePath = `levels/${filename}.json`
+        if (!fs.existsSync(`./public/${relativePath}`)){
+            user.prompt("No such file");
+            return;
+        }
+
+        let filePath = `${this.baseUrl}/${relativePath}`;
+        let level: levelData = await fetchJSON(filePath);
+        level.forEach((d, _) => {
+            this.spawnItem(d.char, d.transform, editor);
+        });
+    }
+
+    private clearLevel(){
+        this.highlightBoxes.forEach((_,k) => {
+            this.deleteItem(k);
+        })
     }
 }

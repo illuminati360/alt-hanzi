@@ -1,3 +1,10 @@
+import * as MRE from '@microsoft/mixed-reality-extension-sdk';
+
+export type levelData = {
+    char: string,
+    transform: MRE.ActorTransformLike
+}[];
+
 export class PinyinDatabase{
     private components: any;
     private pinyin: any;
@@ -5,6 +12,7 @@ export class PinyinDatabase{
     private _syllables: any;
     private _dictionary: any;
     private _characters: any;
+    private _radicals: any;
 
     get syllables() {return this._syllables}
     get phonetics() {return this.pinyin.phonetics}
@@ -18,6 +26,7 @@ export class PinyinDatabase{
     get wholes() {return this.components.wholes.split(' ')}
     get characters() {return this._characters}
     get dictionary() {return this._dictionary}
+    get radicals() {return this._radicals}
 
     constructor(){
         this.components = ({
@@ -27,7 +36,7 @@ export class PinyinDatabase{
             tones: '1 2 3 4'
         })
 
-        this.pinyin = require('../public/phonetics.json');
+        this.pinyin = require('../public/json/phonetics.json');
 
         this.trie = {};
         this.pinyin.phonetics.forEach((r: string[]) => r.forEach((s: string) => {
@@ -38,8 +47,14 @@ export class PinyinDatabase{
         }));
 
         this._syllables = [].concat(...this.pinyin.phonetics);
-        this._dictionary = require('../public/hanzi.json');
+        this._dictionary = require('../public/json/hanzi.json');
         this._characters = Object.keys(this._dictionary).sort((a,b)=>{return this._dictionary[a].id - this._dictionary[b].id});
+
+        let radicalDictionary = require('../public/json/radical.json');
+        this._radicals = Object.keys(radicalDictionary).sort((a,b)=>{return radicalDictionary[a].id - radicalDictionary[b].id});
+
+        // merge dictionaries
+        this._dictionary = Object.assign({}, this._dictionary, radicalDictionary);
     }
 
     public find(s: string){
