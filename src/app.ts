@@ -10,7 +10,7 @@ const THUMBNAILS_BASE_URL = "https://raw.githubusercontent.com/illuminati360/alt
 const MODELS_BASE_URL = "https://raw.githubusercontent.com/illuminati360/alt-hanzi-data/master/models/";
 
 const HANZI_MODEL_SCALE = 0.0001*8;
-const HANZI_MODEL_ROTATION = MRE.Quaternion.FromEulerAngles(0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians, -180 * MRE.DegreesToRadians);
+const HANZI_MODEL_ROTATION = MRE.Quaternion.FromEulerAngles(0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians);
 
 const SCALE_STEP = 0.025/1000;
 
@@ -1128,7 +1128,7 @@ export default class Hanzi {
                 name: code,
                 transform: {
                     local: {
-                        position: {x: 4+center.x*HANZI_MODEL_SCALE, y: 4+center.y*HANZI_MODEL_SCALE, z: center.z*HANZI_MODEL_SCALE},
+                        position: {x: 4, y: 4, z: 0},
                         scale: {x: HANZI_MODEL_SCALE, y: HANZI_MODEL_SCALE, z: HANZI_MODEL_SCALE},
                         rotation: HANZI_MODEL_ROTATION
                     }
@@ -1155,7 +1155,7 @@ export default class Hanzi {
                 },
                 transform:{
                     local: {
-                        position: {x: 4, y: 4, z: 0},
+                        position: {x: center.x, y: -center.x/dim.width*dim.height, z: 0},
                         scale: {x: 1, y: 1, z: 1}
                     }
                 },
