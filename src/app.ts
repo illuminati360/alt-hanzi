@@ -721,7 +721,8 @@ export default class Hanzi {
             if (this.currentScene != 'common_hanzi_menu' && this.currentScene != 'radical_menu') { return; }
             this.commonHanziMenu.highlight(coord);
             let index = this.commonHanziMenu.getHighlightedIndex(this.commonHanziMenu.coord);
-            this.updateHanziInfoPanel(index);
+            let char = this.getCharacters()[index];
+            this.updateHanziInfoPanel(char);
         });
     }
 
@@ -1077,8 +1078,7 @@ export default class Hanzi {
         this.commonHanziMenu.updateCells(this.commonHanziMenu.reshape(data));
     }
 
-    private updateHanziInfoPanel(index: number){
-        let char = this.getCharacters()[index];
+    private updateHanziInfoPanel(char: string){
         if (char === undefined) return;
         let code = char.charCodeAt(0).toString();
         let url = new URL(`${code}.png`, THUMBNAILS_BASE_URL).toString();
@@ -1242,6 +1242,7 @@ export default class Hanzi {
                         }
                         box.appearance.material = this.boundingBoxMaterial;
                         this.highlightedActor = actor;
+                        this.updateHanziInfoPanel(this.spawnedHanzi.get(box));
                     }else{
                         box.appearance.material = this.invisibleMaterial;
                         this.highlightedActor = null;
