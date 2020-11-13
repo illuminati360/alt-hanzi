@@ -215,7 +215,7 @@ export default class Hanzi {
     }
 
     private createMainMenu(){
-        const MAIN_MENU_ITEMS = ['Pin Yin', 'Phonetics', 'Radicals', 'Common', 'Writer'];
+        const MAIN_MENU_ITEMS = ['Pin Yin', 'Phonetics', 'Radicals', 'Common'];
         const MAIN_MENU_CELL_WIDTH = 0.6;
         const MAIN_MENU_CELL_HEIGHT = 0.2;
         const MAIN_MENU_CELL_DEPTH = 0.005;
@@ -283,8 +283,6 @@ export default class Hanzi {
                         this.commonHanziMenu.setPageNum(this.hanziPageNum, this.getCharacters().length);
                     }
                     this.updateCommonHanziMenu( this.getCommonHanziPageData() );
-                    break;
-                case MAIN_MENU_ITEMS.indexOf('Writer'):
                     break;
             }
         });

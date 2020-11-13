@@ -8,3 +8,4 @@ build/
 .deployment
 *.blend1
 .DS_Store
+public/models/*.glb
