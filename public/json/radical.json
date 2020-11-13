@@ -1,0 +1,1286 @@
+{
+    "一": {
+        "pinyin": "yi1",
+        "id": "1",
+        "stroke": "1",
+        "english": "one"
+    },
+    "丨": {
+        "pinyin": "gun3",
+        "id": "2",
+        "stroke": "1",
+        "english": "line"
+    },
+    "丶": {
+        "pinyin": "zhu3",
+        "id": "3",
+        "stroke": "1",
+        "english": "dot"
+    },
+    "丿": {
+        "pinyin": "pie3",
+        "id": "4",
+        "stroke": "1",
+        "english": "slash"
+    },
+    "乙": {
+        "pinyin": "yi4",
+        "id": "5",
+        "stroke": "1",
+        "english": "second"
+    },
+    "亅": {
+        "pinyin": "jue2",
+        "id": "6",
+        "stroke": "1",
+        "english": "hook"
+    },
+    "二": {
+        "pinyin": "er4",
+        "id": "7",
+        "stroke": "2",
+        "english": "two"
+    },
+    "亠": {
+        "pinyin": "tou2",
+        "id": "8",
+        "stroke": "2",
+        "english": "lid"
+    },
+    "人": {
+        "pinyin": "ren2",
+        "id": "9",
+        "stroke": "2",
+        "english": "person"
+    },
+    "儿": {
+        "pinyin": "er2",
+        "id": "10",
+        "stroke": "2",
+        "english": "legs"
+    },
+    "入": {
+        "pinyin": "ru4",
+        "id": "11",
+        "stroke": "2",
+        "english": "enter"
+    },
+    "八": {
+        "pinyin": "ba1",
+        "id": "12",
+        "stroke": "2",
+        "english": "eight"
+    },
+    "冂": {
+        "pinyin": "jiong3",
+        "id": "13",
+        "stroke": "2",
+        "english": "down box"
+    },
+    "冖": {
+        "pinyin": "mi4",
+        "id": "14",
+        "stroke": "2",
+        "english": "cover"
+    },
+    "冫": {
+        "pinyin": "bing1",
+        "id": "15",
+        "stroke": "2",
+        "english": "ice"
+    },
+    "几": {
+        "pinyin": "ji1",
+        "id": "16",
+        "stroke": "2",
+        "english": "table"
+    },
+    "凵": {
+        "pinyin": "qu3",
+        "id": "17",
+        "stroke": "2",
+        "english": "open box"
+    },
+    "刀": {
+        "pinyin": "dao1",
+        "id": "18",
+        "stroke": "2",
+        "english": "knife"
+    },
+    "力": {
+        "pinyin": "li4",
+        "id": "19",
+        "stroke": "2",
+        "english": "power"
+    },
+    "勹": {
+        "pinyin": "bao1",
+        "id": "20",
+        "stroke": "2",
+        "english": "wrap"
+    },
+    "匕": {
+        "pinyin": "bi3",
+        "id": "21",
+        "stroke": "2",
+        "english": "ladle"
+    },
+    "匚": {
+        "pinyin": "fang1",
+        "id": "22",
+        "stroke": "2",
+        "english": "right open box"
+    },
+    "匸": {
+        "pinyin": "hiding enclo",
+        "id": "23",
+        "stroke": "2",
+        "english": "hiding enclosure"
+    },
+    "十": {
+        "pinyin": "shi2",
+        "id": "24",
+        "stroke": "2",
+        "english": "ten"
+    },
+    "卜": {
+        "pinyin": "mysti",
+        "id": "25",
+        "stroke": "2",
+        "english": "divination"
+    },
+    "卩": {
+        "pinyin": "jie2",
+        "id": "26",
+        "stroke": "2",
+        "english": "seal"
+    },
+    "厂": {
+        "pinyin": "han4",
+        "id": "27",
+        "stroke": "2",
+        "english": "cliff"
+    },
+    "厶": {
+        "pinyin": "si1",
+        "id": "28",
+        "stroke": "2",
+        "english": "private"
+    },
+    "又": {
+        "pinyin": "you4",
+        "id": "29",
+        "stroke": "2",
+        "english": "again"
+    },
+    "口": {
+        "pinyin": "kou3",
+        "id": "30",
+        "stroke": "3",
+        "english": "mouth"
+    },
+    "囗": {
+        "pinyin": "enclo",
+        "id": "31",
+        "stroke": "3",
+        "english": "enclosure"
+    },
+    "土": {
+        "pinyin": "tu3",
+        "id": "32",
+        "stroke": "3",
+        "english": "earth"
+    },
+    "士": {
+        "pinyin": "shi4",
+        "id": "33",
+        "stroke": "3",
+        "english": "scholar"
+    },
+    "夂": {
+        "pinyin": " zhi3 (top) ",
+        "id": "34",
+        "stroke": "3",
+        "english": "go"
+    },
+    "夊": {
+        "pinyin": "tom)",
+        "id": "35",
+        "stroke": "3",
+        "english": "go slowly"
+    },
+    "夕": {
+        "pinyin": "xi1",
+        "id": "36",
+        "stroke": "3",
+        "english": "night"
+    },
+    "大": {
+        "pinyin": "da4",
+        "id": "37",
+        "stroke": "3",
+        "english": "big"
+    },
+    "女": {
+        "pinyin": "nü3",
+        "id": "38",
+        "stroke": "3",
+        "english": "woman"
+    },
+    "子": {
+        "pinyin": "zi3",
+        "id": "39",
+        "stroke": "3",
+        "english": "child"
+    },
+    "宀": {
+        "pinyin": "mian2",
+        "id": "40",
+        "stroke": "3",
+        "english": "roof"
+    },
+    "寸": {
+        "pinyin": "cun4",
+        "id": "41",
+        "stroke": "3",
+        "english": "inch"
+    },
+    "小": {
+        "pinyin": "xiao3",
+        "id": "42",
+        "stroke": "3",
+        "english": "small"
+    },
+    "尢": {
+        "pinyin": "wang1",
+        "id": "43",
+        "stroke": "3",
+        "english": "lame"
+    },
+    "尸": {
+        "pinyin": "shi1",
+        "id": "44",
+        "stroke": "3",
+        "english": "corpse"
+    },
+    "屮": {
+        "pinyin": "che4",
+        "id": "45",
+        "stroke": "3",
+        "english": "sprout"
+    },
+    "山": {
+        "pinyin": "moun",
+        "id": "46",
+        "stroke": "3",
+        "english": "mountain"
+    },
+    "川": {
+        "pinyin": "chuan1",
+        "id": "47",
+        "stroke": "3",
+        "english": "river"
+    },
+    "工": {
+        "pinyin": "gong1",
+        "id": "48",
+        "stroke": "3",
+        "english": "work"
+    },
+    "己": {
+        "pinyin": "ji3",
+        "id": "49",
+        "stroke": "3",
+        "english": "oneself"
+    },
+    "巾": {
+        "pinyin": "jin1",
+        "id": "50",
+        "stroke": "3",
+        "english": "towel"
+    },
+    "干": {
+        "pinyin": "gan1",
+        "id": "51",
+        "stroke": "3",
+        "english": "dry"
+    },
+    "幺": {
+        "pinyin": "yao1",
+        "id": "52",
+        "stroke": "3",
+        "english": "thread"
+    },
+    "广": {
+        "pinyin": "guan3",
+        "id": "53",
+        "stroke": "3",
+        "english": "shelter"
+    },
+    "廴": {
+        "pinyin": "yin3",
+        "id": "54",
+        "stroke": "3",
+        "english": "stride"
+    },
+    "廾": {
+        "pinyin": "gong3",
+        "id": "55",
+        "stroke": "3",
+        "english": "hands joined"
+    },
+    "弋": {
+        "pinyin": "yi4",
+        "id": "56",
+        "stroke": "3",
+        "english": "shoot with a bow"
+    },
+    "弓": {
+        "pinyin": "gong1",
+        "id": "57",
+        "stroke": "3",
+        "english": "bow"
+    },
+    "彐": {
+        "pinyin": "ji4",
+        "id": "58",
+        "stroke": "3",
+        "english": "snout"
+    },
+    "彡": {
+        "pinyin": "shan1",
+        "id": "59",
+        "stroke": "3",
+        "english": "hair"
+    },
+    "彳": {
+        "pinyin": "chi4",
+        "id": "60",
+        "stroke": "3",
+        "english": "step"
+    },
+    "心": {
+        "pinyin": "xin1",
+        "id": "61",
+        "stroke": "4",
+        "english": "heart"
+    },
+    "戈": {
+        "pinyin": "ge1",
+        "id": "62",
+        "stroke": "4",
+        "english": "spear"
+    },
+    "户": {
+        "pinyin": "hu4",
+        "id": "63",
+        "stroke": "4",
+        "english": "door"
+    },
+    "手": {
+        "pinyin": "shou3",
+        "id": "64",
+        "stroke": "4",
+        "english": "hand"
+    },
+    "支": {
+        "pinyin": "zhi1",
+        "id": "65",
+        "stroke": "4",
+        "english": "branch"
+    },
+    "攴": {
+        "pinyin": "pu1",
+        "id": "66",
+        "stroke": "4",
+        "english": "rap"
+    },
+    "文": {
+        "pinyin": "wen2",
+        "id": "67",
+        "stroke": "4",
+        "english": "script"
+    },
+    "斗": {
+        "pinyin": "dou3",
+        "id": "68",
+        "stroke": "4",
+        "english": "dipper"
+    },
+    "斤": {
+        "pinyin": "jin1",
+        "id": "69",
+        "stroke": "4",
+        "english": "axe"
+    },
+    "方": {
+        "pinyin": "fang1",
+        "id": "70",
+        "stroke": "4",
+        "english": "square"
+    },
+    "无": {
+        "pinyin": "wu2",
+        "id": "71",
+        "stroke": "4",
+        "english": "not"
+    },
+    "日": {
+        "pinyin": "ri4",
+        "id": "72",
+        "stroke": "4",
+        "english": "sun"
+    },
+    "曰": {
+        "pinyin": "yue1",
+        "id": "73",
+        "stroke": "4",
+        "english": "say"
+    },
+    "月": {
+        "pinyin": "yue4",
+        "id": "74",
+        "stroke": "4",
+        "english": "moon"
+    },
+    "木": {
+        "pinyin": "mu4",
+        "id": "75",
+        "stroke": "4",
+        "english": "tree"
+    },
+    "欠": {
+        "pinyin": "qian4",
+        "id": "76",
+        "stroke": "4",
+        "english": "lack"
+    },
+    "止": {
+        "pinyin": "zhi3",
+        "id": "77",
+        "stroke": "4",
+        "english": "stop"
+    },
+    "歹": {
+        "pinyin": "dai3",
+        "id": "78",
+        "stroke": "4",
+        "english": "death"
+    },
+    "殳": {
+        "pinyin": "shu1",
+        "id": "79",
+        "stroke": "4",
+        "english": "weapon"
+    },
+    "母": {
+        "pinyin": "wu2",
+        "id": "80",
+        "stroke": "4",
+        "english": "mother"
+    },
+    "比": {
+        "pinyin": "bi3",
+        "id": "81",
+        "stroke": "4",
+        "english": "compare"
+    },
+    "毛": {
+        "pinyin": "mao2",
+        "id": "82",
+        "stroke": "4",
+        "english": "fur"
+    },
+    "氏": {
+        "pinyin": "shi4",
+        "id": "83",
+        "stroke": "4",
+        "english": "clan"
+    },
+    "气": {
+        "pinyin": "qi4",
+        "id": "84",
+        "stroke": "4",
+        "english": "steam"
+    },
+    "水": {
+        "pinyin": "shui3",
+        "id": "85",
+        "stroke": "4",
+        "english": "water"
+    },
+    "火": {
+        "pinyin": "huo3",
+        "id": "86",
+        "stroke": "4",
+        "english": "fire"
+    },
+    "爪": {
+        "pinyin": "zhao3",
+        "id": "87",
+        "stroke": "4",
+        "english": "claw"
+    },
+    "父": {
+        "pinyin": "fu4",
+        "id": "88",
+        "stroke": "4",
+        "english": "father"
+    },
+    "爻": {
+        "pinyin": "yao2",
+        "id": "89",
+        "stroke": "4",
+        "english": "lines on a trigram"
+    },
+    "爿": {
+        "pinyin": "pan2, qiang2",
+        "id": "90",
+        "stroke": "4",
+        "english": "half of a tree trunk"
+    },
+    "片": {
+        "pinyin": "pian4",
+        "id": "91",
+        "stroke": "4",
+        "english": "slice"
+    },
+    "牙": {
+        "pinyin": "ya2",
+        "id": "92",
+        "stroke": "4",
+        "english": "tooth"
+    },
+    "牛": {
+        "pinyin": "niu2",
+        "id": "93",
+        "stroke": "4",
+        "english": "cow"
+    },
+    "犭": {
+        "pinyin": "quan3",
+        "id": "94",
+        "stroke": "3",
+        "english": "dog"
+    },
+    "玄": {
+        "pinyin": "pro",
+        "id": "95",
+        "stroke": "5",
+        "english": "profound"
+    },
+    "玉": {
+        "pinyin": "yu4",
+        "id": "96",
+        "stroke": "5",
+        "english": "jade"
+    },
+    "瓜": {
+        "pinyin": "gua1",
+        "id": "97",
+        "stroke": "5",
+        "english": "melon"
+    },
+    "瓦": {
+        "pinyin": "wa3",
+        "id": "98",
+        "stroke": "5",
+        "english": "tile"
+    },
+    "甘": {
+        "pinyin": "gan1",
+        "id": "99",
+        "stroke": "5",
+        "english": "sweet"
+    },
+    "生": {
+        "pinyin": "sheng1",
+        "id": "100",
+        "stroke": "5",
+        "english": "life"
+    },
+    "用": {
+        "pinyin": "yong4",
+        "id": "101",
+        "stroke": "5",
+        "english": "use"
+    },
+    "田": {
+        "pinyin": "tian2",
+        "id": "102",
+        "stroke": "5",
+        "english": "field"
+    },
+    "疋": {
+        "pinyin": "pi3",
+        "id": "103",
+        "stroke": "5",
+        "english": "cloth"
+    },
+    "疒": {
+        "pinyin": "sick",
+        "id": "104",
+        "stroke": "5",
+        "english": "ill"
+    },
+    "癶": {
+        "pinyin": "bo4",
+        "id": "105",
+        "stroke": "5",
+        "english": "foot steps"
+    },
+    "白": {
+        "pinyin": "bai2",
+        "id": "106",
+        "stroke": "5",
+        "english": "white"
+    },
+    "皮": {
+        "pinyin": "pi2",
+        "id": "107",
+        "stroke": "5",
+        "english": "skin"
+    },
+    "皿": {
+        "pinyin": "min3",
+        "id": "108",
+        "stroke": "5",
+        "english": "dish"
+    },
+    "目": {
+        "pinyin": "mu4",
+        "id": "109",
+        "stroke": "5",
+        "english": "eye"
+    },
+    "矛": {
+        "pinyin": "mao2",
+        "id": "110",
+        "stroke": "5",
+        "english": "spear"
+    },
+    "矢": {
+        "pinyin": "shi3",
+        "id": "111",
+        "stroke": "5",
+        "english": "arrow"
+    },
+    "石": {
+        "pinyin": "shi2",
+        "id": "112",
+        "stroke": "5",
+        "english": "stone"
+    },
+    "示": {
+        "pinyin": "shi4",
+        "id": "113",
+        "stroke": "5",
+        "english": "spirit"
+    },
+    "禸": {
+        "pinyin": "rou3",
+        "id": "114",
+        "stroke": "4",
+        "english": "track"
+    },
+    "禾": {
+        "pinyin": "he2",
+        "id": "115",
+        "stroke": "5",
+        "english": "grain"
+    },
+    "穴": {
+        "pinyin": "xue4",
+        "id": "116",
+        "stroke": "5",
+        "english": "cave"
+    },
+    "立": {
+        "pinyin": "li4",
+        "id": "117",
+        "stroke": "5",
+        "english": "stand"
+    },
+    "竹": {
+        "pinyin": "zhu2",
+        "id": "118",
+        "stroke": "6",
+        "english": "bamboo"
+    },
+    "米": {
+        "pinyin": "mi3",
+        "id": "119",
+        "stroke": "6",
+        "english": "rice"
+    },
+    "纟": {
+        "pinyin": "mi4",
+        "id": "120",
+        "stroke": "3",
+        "english": "silk"
+    },
+    "缶": {
+        "pinyin": "fou3",
+        "id": "121",
+        "stroke": "6",
+        "english": "jar"
+    },
+    "网": {
+        "pinyin": "wang3",
+        "id": "122",
+        "stroke": "6",
+        "english": "net"
+    },
+    "羊": {
+        "pinyin": "yang2",
+        "id": "123",
+        "stroke": "6",
+        "english": "sheep"
+    },
+    "羽": {
+        "pinyin": "yu3",
+        "id": "124",
+        "stroke": "6",
+        "english": "feather"
+    },
+    "老": {
+        "pinyin": "lao3",
+        "id": "125",
+        "stroke": "6",
+        "english": "old"
+    },
+    "而": {
+        "pinyin": "er2",
+        "id": "126",
+        "stroke": "6",
+        "english": "and"
+    },
+    "耒": {
+        "pinyin": "lei3",
+        "id": "127",
+        "stroke": "6",
+        "english": "plow"
+    },
+    "耳": {
+        "pinyin": "er3",
+        "id": "128",
+        "stroke": "6",
+        "english": "ear"
+    },
+    "聿": {
+        "pinyin": "yu4",
+        "id": "129",
+        "stroke": "6",
+        "english": "brush"
+    },
+    "肉": {
+        "pinyin": "rou4",
+        "id": "130",
+        "stroke": "6",
+        "english": "meat"
+    },
+    "臣": {
+        "pinyin": "minis",
+        "id": "131",
+        "stroke": "6",
+        "english": "minister"
+    },
+    "自": {
+        "pinyin": "zi4",
+        "id": "132",
+        "stroke": "6",
+        "english": "oneself"
+    },
+    "至": {
+        "pinyin": "zhi4",
+        "id": "133",
+        "stroke": "6",
+        "english": "arrive"
+    },
+    "臼": {
+        "pinyin": "jiu4",
+        "id": "134",
+        "stroke": "6",
+        "english": "mortar"
+    },
+    "舌": {
+        "pinyin": "she2",
+        "id": "135",
+        "stroke": "6",
+        "english": "tongue"
+    },
+    "舛": {
+        "pinyin": "chuan3",
+        "id": "136",
+        "stroke": "6",
+        "english": "contrary"
+    },
+    "舟": {
+        "pinyin": "zhou1",
+        "id": "137",
+        "stroke": "6",
+        "english": "boat"
+    },
+    "艮": {
+        "pinyin": "stop",
+        "id": "138",
+        "stroke": "6",
+        "english": "mountain"
+    },
+    "色": {
+        "pinyin": "se4",
+        "id": "139",
+        "stroke": "6",
+        "english": "color"
+    },
+    "艹": {
+        "pinyin": "cao3",
+        "id": "140",
+        "stroke": "3",
+        "english": "grass"
+    },
+    "虍": {
+        "pinyin": "hu1",
+        "id": "141",
+        "stroke": "6",
+        "english": "tiger"
+    },
+    "虫": {
+        "pinyin": "chong2",
+        "id": "142",
+        "stroke": "6",
+        "english": "insect"
+    },
+    "血": {
+        "pinyin": "xue3",
+        "id": "143",
+        "stroke": "6",
+        "english": "blood"
+    },
+    "行": {
+        "pinyin": "walk enclo",
+        "id": "144",
+        "stroke": "6",
+        "english": "walk"
+    },
+    "衣": {
+        "pinyin": "yi1",
+        "id": "145",
+        "stroke": "6",
+        "english": "clothes"
+    },
+    "西": {
+        "pinyin": "ya4",
+        "id": "146",
+        "stroke": "6",
+        "english": "west"
+    },
+    "见": {
+        "pinyin": "jian4",
+        "id": "147",
+        "stroke": "4",
+        "english": "see"
+    },
+    "角": {
+        "pinyin": "jue2",
+        "id": "148",
+        "stroke": "7",
+        "english": "horn"
+    },
+    "讠": {
+        "pinyin": "yan2",
+        "id": "149",
+        "stroke": "2",
+        "english": "speech"
+    },
+    "谷": {
+        "pinyin": "gu3",
+        "id": "150",
+        "stroke": "7",
+        "english": "valley"
+    },
+    "豆": {
+        "pinyin": "dou4",
+        "id": "151",
+        "stroke": "7",
+        "english": "bean"
+    },
+    "豕": {
+        "pinyin": "shi3",
+        "id": "152",
+        "stroke": "7",
+        "english": "pig"
+    },
+    "豸": {
+        "pinyin": "zhi4",
+        "id": "153",
+        "stroke": "7",
+        "english": "badger"
+    },
+    "贝": {
+        "pinyin": "bei4",
+        "id": "154",
+        "stroke": "4",
+        "english": "shell"
+    },
+    "赤": {
+        "pinyin": "chi4",
+        "id": "155",
+        "stroke": "7",
+        "english": "red"
+    },
+    "走": {
+        "pinyin": "zou3",
+        "id": "156",
+        "stroke": "7",
+        "english": "walk"
+    },
+    "足": {
+        "pinyin": "zu2",
+        "id": "157",
+        "stroke": "7",
+        "english": "foot"
+    },
+    "身": {
+        "pinyin": "shen1",
+        "id": "158",
+        "stroke": "7",
+        "english": "body"
+    },
+    "车": {
+        "pinyin": "che1",
+        "id": "159",
+        "stroke": "4",
+        "english": "cart"
+    },
+    "辛": {
+        "pinyin": "xin1",
+        "id": "160",
+        "stroke": "7",
+        "english": "bitter"
+    },
+    "辰": {
+        "pinyin": "chen2",
+        "id": "161",
+        "stroke": "7",
+        "english": "morning"
+    },
+    "辶": {
+        "pinyin": "chuo4",
+        "id": "162",
+        "stroke": "3",
+        "english": "walk"
+    },
+    "邑": {
+        "pinyin": "yi4",
+        "id": "163",
+        "stroke": "7",
+        "english": "city"
+    },
+    "酉": {
+        "pinyin": "you3",
+        "id": "164",
+        "stroke": "7",
+        "english": "wine"
+    },
+    "釆": {
+        "pinyin": "distin",
+        "id": "165",
+        "stroke": "7",
+        "english": "distinguish"
+    },
+    "里": {
+        "pinyin": "li3",
+        "id": "166",
+        "stroke": "7",
+        "english": "village"
+    },
+    "钅": {
+        "pinyin": "jin1",
+        "id": "167",
+        "stroke": "5",
+        "english": "metal"
+    },
+    "长": {
+        "pinyin": "chang2",
+        "id": "168",
+        "stroke": "4",
+        "english": "long"
+    },
+    "门": {
+        "pinyin": "men2",
+        "id": "169",
+        "stroke": "3",
+        "english": "gate"
+    },
+    "阜": {
+        "pinyin": "fu4",
+        "id": "170",
+        "stroke": "8",
+        "english": "mound"
+    },
+    "隶": {
+        "pinyin": "dai4",
+        "id": "171",
+        "stroke": "8",
+        "english": "slave"
+    },
+    "隹": {
+        "pinyin": "zhui1",
+        "id": "172",
+        "stroke": "8",
+        "english": "short-tailed bird"
+    },
+    "雨": {
+        "pinyin": "yu3",
+        "id": "173",
+        "stroke": "8",
+        "english": "rain"
+    },
+    "青": {
+        "pinyin": "qing1",
+        "id": "174",
+        "stroke": "8",
+        "english": "blue"
+    },
+    "非": {
+        "pinyin": "fei1",
+        "id": "175",
+        "stroke": "8",
+        "english": "wrong"
+    },
+    "面": {
+        "pinyin": "mian4",
+        "id": "176",
+        "stroke": "9",
+        "english": "face"
+    },
+    "革": {
+        "pinyin": "ge2",
+        "id": "177",
+        "stroke": "9",
+        "english": "leather"
+    },
+    "韦": {
+        "pinyin": "wei2",
+        "id": "178",
+        "stroke": "4",
+        "english": "soft leather"
+    },
+    "韭": {
+        "pinyin": "jiu3",
+        "id": "179",
+        "stroke": "9",
+        "english": "leek"
+    },
+    "音": {
+        "pinyin": "yin1",
+        "id": "180",
+        "stroke": "9",
+        "english": "sound"
+    },
+    "页": {
+        "pinyin": "ye4",
+        "id": "181",
+        "stroke": "6",
+        "english": "page"
+    },
+    "风": {
+        "pinyin": "feng1",
+        "id": "182",
+        "stroke": "4",
+        "english": "wind"
+    },
+    "飞": {
+        "pinyin": "fei1",
+        "id": "183",
+        "stroke": "4",
+        "english": "fly"
+    },
+    "饣": {
+        "pinyin": "shi2",
+        "id": "184",
+        "stroke": "3",
+        "english": "eat"
+    },
+    "首": {
+        "pinyin": "shou3",
+        "id": "185",
+        "stroke": "9",
+        "english": "head"
+    },
+    "香": {
+        "pinyin": "xiang1",
+        "id": "186",
+        "stroke": "9",
+        "english": "fragrant"
+    },
+    "马": {
+        "pinyin": "ma3",
+        "id": "187",
+        "stroke": "3",
+        "english": "horse"
+    },
+    "骨": {
+        "pinyin": "gu3",
+        "id": "188",
+        "stroke": "9",
+        "english": "bone"
+    },
+    "高": {
+        "pinyin": "gao1",
+        "id": "189",
+        "stroke": "10",
+        "english": "high"
+    },
+    "髟": {
+        "pinyin": "biao1",
+        "id": "190",
+        "stroke": "10",
+        "english": "long hair"
+    },
+    "鬥": {
+        "pinyin": "dou4",
+        "id": "191",
+        "stroke": "10",
+        "english": "fight"
+    },
+    "鬯": {
+        "pinyin": "sacri",
+        "id": "192",
+        "stroke": "10",
+        "english": "sacrificial wine"
+    },
+    "鬲": {
+        "pinyin": "caul",
+        "id": "193",
+        "stroke": "10",
+        "english": "cauldron"
+    },
+    "鬼": {
+        "pinyin": "gui3",
+        "id": "194",
+        "stroke": "9",
+        "english": "ghost"
+    },
+    "鱼": {
+        "pinyin": "yu2",
+        "id": "195",
+        "stroke": "8",
+        "english": "fish"
+    },
+    "鸟": {
+        "pinyin": "niao3",
+        "id": "196",
+        "stroke": "5",
+        "english": "bird"
+    },
+    "卤": {
+        "pinyin": "lu3",
+        "id": "197",
+        "stroke": "7",
+        "english": "salty"
+    },
+    "鹿": {
+        "pinyin": "lu4",
+        "id": "198",
+        "stroke": "11",
+        "english": "deer"
+    },
+    "麦": {
+        "pinyin": "mai4",
+        "id": "199",
+        "stroke": "7",
+        "english": "wheat"
+    },
+    "麻": {
+        "pinyin": "ma2",
+        "id": "200",
+        "stroke": "11",
+        "english": "hemp"
+    },
+    "黄": {
+        "pinyin": "huang2",
+        "id": "201",
+        "stroke": "11",
+        "english": "yellow"
+    },
+    "黍": {
+        "pinyin": "shu3",
+        "id": "202",
+        "stroke": "12",
+        "english": "millet"
+    },
+    "黑": {
+        "pinyin": "hei1",
+        "id": "203",
+        "stroke": "12",
+        "english": "black"
+    },
+    "黹": {
+        "pinyin": "embroi",
+        "id": "204",
+        "stroke": "12",
+        "english": "embroidery"
+    },
+    "黾": {
+        "pinyin": "min3",
+        "id": "205",
+        "stroke": "8",
+        "english": "frog"
+    },
+    "鼎": {
+        "pinyin": "ding3",
+        "id": "206",
+        "stroke": "12",
+        "english": "tripod"
+    },
+    "鼓": {
+        "pinyin": "gu3",
+        "id": "207",
+        "stroke": "13",
+        "english": "drum"
+    },
+    "鼠": {
+        "pinyin": "shu3",
+        "id": "208",
+        "stroke": "13",
+        "english": "rat"
+    },
+    "鼻": {
+        "pinyin": "bi2",
+        "id": "209",
+        "stroke": "14",
+        "english": "nose"
+    },
+    "齐": {
+        "pinyin": "qi2",
+        "id": "210",
+        "stroke": "6",
+        "english": "even"
+    },
+    "齿": {
+        "pinyin": "chi3",
+        "id": "211",
+        "stroke": "8",
+        "english": "tooth"
+    },
+    "龙": {
+        "pinyin": "long2",
+        "id": "212",
+        "stroke": "5",
+        "english": "dragon"
+    },
+    "龟": {
+        "pinyin": "gui1",
+        "id": "213",
+        "stroke": "7",
+        "english": "turtle"
+    },
+    "龠": {
+        "pinyin": "yue4",
+        "id": "214",
+        "stroke": "17",
+        "english": "flute"
+    }
+}
