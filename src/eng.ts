@@ -6,12 +6,14 @@ import { EngDatabase } from './database';
 import { Vector2 } from '@microsoft/mixed-reality-extension-sdk';
 import { NumberInput } from './GUI/NumberInput';
 import { checkUserName, getGltf, joinUrl, lineBreak } from './utils';
+import { Button } from './GUI/button';
 
 const OWNER_NAME = process.env['OWNER_NAME'];
 const MODELS_BASE_URL = "https://raw.githubusercontent.com/illuminati360/alt-kanji-data/master/models/";
 
 const MODEL_SCALE = 1;
 const MODEL_ROTATION = MRE.Quaternion.FromEulerAngles(0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians);
+const RADIUS = 0.09;
 
 const SCALE_STEP = 0.025/1000;
 
@@ -42,6 +44,7 @@ export default class English {
     private assets: MRE.AssetContainer;
     private baseUrl: string;
 
+    private ball: Button;
     private root: MRE.Actor;
     private home: MRE.Actor;
     private textures: Map<string, MRE.Texture>;
@@ -60,6 +63,7 @@ export default class English {
     private words: any;
 
     private highlightedActor: MRE.Actor;
+
 
     // scene
     private scenes: Array<[string, GridMenu[]]> = [];
@@ -96,7 +100,7 @@ export default class English {
         // data
         this.loadData();
 
-        this.createRoot();
+        this.createBall();
 
         // menus for glossary_menu scene
         this.createGlossary();
@@ -121,14 +125,47 @@ export default class English {
         return this.words.slice(pageSize*(this.glossary.curPageNum-1), pageSize*this.glossary.curPageNum);
     }
 
-    private createRoot(){
+    private createBall(){
+        this.ball = new Button(this.context, {
+            position: {x: 0, y: 0, z: 0},
+            scale: {x: 1, y: 1, z: 1},
+            text: '',
+            enabled: true,
+            meshId: this.assets.createSphereMesh('ball_mesh', RADIUS*0.7).id,
+            materialId: this.assets.createMaterial('ball_material', { color: MRE.Color3.LightGray() }).id,
+            layer: MRE.CollisionLayer.Hologram
+        });
+
         this.root = MRE.Actor.Create(this.context, {
             actor:{ 
                 transform: { 
-                    local: { position: {x: 0, y: 0, z: 0} }
-                }
-            },
+                    local: { position: {x: RADIUS, y: RADIUS, z: RADIUS} }
+                },
+                parentId: this.ball._button.id
+            }
         });
+        
+        // Add grab
+        let button = this.ball._button;
+        button.grabbable = true;
+        button.onGrab('end', (user)=>{
+            if (checkUserName(user, OWNER_NAME)) {
+                if (this.ball._button.attachment === undefined || this.ball._button.attachment.attachPoint == 'none'){
+                    this.equipBall(user);
+                }
+            }
+        });
+
+        this.ball.addBehavior((user,_)=>{
+            user.prompt("Detach ?", false).then((dialog) => {
+                if (dialog.submitted) {
+                    this.unEquipBall();
+                }
+            });
+        })
+
+        // subscribe
+        button.subscribe('transform');
     }
 
     private createGlossary(){
@@ -297,6 +334,34 @@ export default class English {
             if (this.currentScene != 'glossary_menu') { return; }
             let col = coord.y;
             switch(col){
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Search'):
+                    user.prompt("Search Item", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            this.searchWord(dialog.text);
+                            this.glossary.resetPageNum();
+                            this.updateGlossary( this.getGlossaryPageData() );
+                        }
+                    });
+                    break;
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Goto'):
+                    user.prompt("Goto page", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let p = parseInt(dialog.text);
+                            if (p!==NaN){
+                                this.glossary.setPageNum(p, this.words.length);
+                                this.updateGlossary( this.getGlossaryPageData() );
+                            }
+                        }
+                    });
+                    break;
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Prev'):
+                    this.glossary.decrementPageNum();
+                    this.updateGlossary( this.getGlossaryPageData() );
+                    break
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Next'):
+                    this.glossary.incrementPageNum(this.words.length);
+                    this.updateGlossary( this.getGlossaryPageData() );
+                    break
                 case GLOSSARY_CONTROL_ITEMS.indexOf('Spawn'):
                     let index = this.glossary.getHighlightedIndex(this.glossary.coord);
                     let word = this.words[index];
@@ -482,18 +547,46 @@ export default class English {
         return this.prefabs.get(id);
     }
 
+    private equipBall(user: MRE.User){
+        let tr = new MRE.ScaledTransform();
+        this.ball.updateLocalTransform(tr);
+
+        this.ball._button.attach(user, 'left-hand');
+    }
+
+    private unEquipBall(){
+        if (this.ball._button.attachment !== undefined) {
+            this.ball._button.detach();
+
+            let tr = new MRE.ScaledTransform();
+            tr.position = this.ball._button.transform.app.position;
+            tr.rotation = this.ball._button.transform.app.rotation;
+            tr.scale = this.ball._button.transform.local.scale;
+            this.ball.updateLocalTransform(tr);
+        }
+    }
+
     private async spawnItem(word: WordData, _transform?: MRE.ActorTransformLike, editor: boolean = true){
         if (word === undefined) return;
         console.log('spawn', word);
 
-        // let url = new URL(word.model, MODELS_BASE_URL).toString();
-        let url = word.model;
-        let prefab = await this.loadGltf(word.id, url);
-
-        let dim = this.dimensions.get(word.id).dimensions;
-        let center = this.dimensions.get(word.id).center;
-
         let size = this.glossary.getMenuSize();
+        let url = word.model;
+
+        let actor: MRE.Actor;
+        let dim: BoundingBoxDimensions['dimensions'];
+        let center: BoundingBoxDimensions['center']
+        let prefab: MRE.Prefab;
+
+        if (/^artifact:/.test(url)){
+            dim = {width: 1, height: 1, depth: 1}
+            center = {x: 0, y: 0, z: 0}
+        }else{
+            prefab = await this.loadGltf(word.id, url);
+            dim = this.dimensions.get(word.id).dimensions;
+            center = this.dimensions.get(word.id).center;
+        }
+
         let pos = {x: size.width + 0.05 + dim.width*MODEL_SCALE/2, y: -dim.height*MODEL_SCALE/2, z: 0};
         let transform = (_transform !== undefined) ? _transform : {
             app: {
@@ -530,23 +623,37 @@ export default class English {
         // subscribe to box transform
         if (editor) box.subscribe('transform');
 
-        let actor = MRE.Actor.CreateFromPrefab(this.context, {
-            prefabId: prefab.id,
-            actor: {
-                parentId: box.id,
-                collider: { 
-                    geometry: { shape: MRE.ColliderType.Box },
-                    layer: MRE.CollisionLayer.Hologram
-                },
-                transform:{
-                    local: {
-                        position: {x: center.x, y: -center.z, z: 0},
-                        scale: {x: 1, y: 1, z: 1}
+        if (/^artifact:/.test(url)){
+            actor = MRE.Actor.CreateFromLibrary(this.context, {
+                resourceId: url,
+                actor: {
+                    parentId: box.id,
+                    transform,
+                    collider: {
+                        geometry: { shape: MRE.ColliderType.Box },
+                        layer: MRE.CollisionLayer.Hologram
                     }
-                },
-                grabbable: editor ? true : false
-            }
-        });
+                }
+            });
+        }else{
+            actor = MRE.Actor.CreateFromPrefab(this.context, {
+                prefabId: prefab.id,
+                actor: {
+                    parentId: box.id,
+                    collider: { 
+                        geometry: { shape: MRE.ColliderType.Box },
+                        layer: MRE.CollisionLayer.Hologram
+                    },
+                    transform:{
+                        local: {
+                            position: {x: center.x, y: -center.z, z: -center.y},
+                            scale: {x: 1, y: 1, z: 1}
+                        }
+                    },
+                    grabbable: editor ? true : false
+                }
+            });
+        }
 
         // remember box
         this.highlightBoxes.set(actor, box);
@@ -583,5 +690,15 @@ export default class English {
         this.spawnedKanji.delete(box);
         actor.destroy();
         if (box !== undefined) { box.destroy(); }
+    }
+
+    private searchWord(search: string = ''){
+        if(!search.length){
+            this.words = this.engDatabase.words;
+        }else{
+            this.words = this.engDatabase.words.filter((w: any) => {
+                return w.info.toLowerCase().includes(search);
+            });
+        }
     }
 }
