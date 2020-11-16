@@ -113,9 +113,18 @@ export class KanjiDatabase{
 
 export class EngDatabase{
     private _words: any;
+    private _idToWord: any;
 
     get words() {return this._words};
     constructor(){
         this._words = require('../public/eng/english.json');
+
+        this._idToWord = {};
+        this._words.forEach((d:any) =>{
+            this._idToWord[d.id] = d;
+        })
     }
+    public idToWord(id: number) {
+        return this._idToWord[id];
+    };
 }

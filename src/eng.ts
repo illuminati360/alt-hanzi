@@ -2,10 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import * as MRE from '@microsoft/mixed-reality-extension-sdk';
 import { CellData, GridMenu } from './GUI/gridMenu';
-import { EngDatabase } from './database';
+import { EngDatabase, levelData } from './database';
 import { Vector2 } from '@microsoft/mixed-reality-extension-sdk';
 import { NumberInput } from './GUI/NumberInput';
-import { checkUserName, getGltf, joinUrl, lineBreak } from './utils';
+import { checkUserName, fetchJSON, getGltf, joinUrl, lineBreak } from './utils';
 import { Button } from './GUI/button';
 
 const OWNER_NAME = process.env['OWNER_NAME'];
@@ -18,6 +18,11 @@ const RADIUS = 0.09;
 const SCALE_STEP = 0.025;
 
 const gltfBoundingBox = require('gltf-bounding-box');
+
+export type EngLevelData = {
+    id: number,
+    transform: MRE.ActorTransformLike
+}[];
 
 type BoundingBoxDimensions = {
     dimensions: {
@@ -372,6 +377,29 @@ export default class English {
                         this.deleteItem(this.highlightedActor);
                     }
                     break;
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Save'):
+                    user.prompt("Save as:", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let filename = dialog.text;
+                            this.saveLevel(filename, user);
+                        }
+                    });
+                    break;
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Load'):
+                    user.prompt("Load from:", true).then((dialog) => {
+                        if (dialog.submitted) {
+                            let filename = dialog.text;
+                            this.loadLevel(filename, user);
+                        }
+                    });
+                    break;
+                case GLOSSARY_CONTROL_ITEMS.indexOf('Clear'):
+                    user.prompt("Clear level?", false).then((dialog) => {
+                        if (dialog.submitted) {
+                            this.clearLevel();
+                        }
+                    });
+                    break;
             }
         });
     }
@@ -700,5 +728,54 @@ export default class English {
                 return w.info.toLowerCase().includes(search);
             });
         }
+    }
+
+    private saveLevel(filename: string, user: MRE.User){
+        let level: EngLevelData = [];
+        this.spawnedKanji.forEach((v,k) => {
+            level.push({
+                id: v.id,
+                transform: k.transform
+            });
+        });
+
+        let filePath = `./public/levels/${path.basename(filename)}.json`;
+        if (fs.existsSync(filePath)){
+            user.prompt("File already exists, overwrite?").then((dialog) => {
+                if (dialog.submitted) {
+                    this.writeLevel(filePath, level, user);
+                }
+            });
+        }
+        else{
+            this.writeLevel(filePath, level, user);
+        }
+    }
+
+    private writeLevel(filePath: string, level: EngLevelData, user: MRE.User){
+        fs.writeFile(filePath, JSON.stringify(level), (err) => {
+            if(err){ console.log(err); user.prompt("Failed")}
+            else{ user.prompt("Saved"); }
+        });
+    }
+
+    private async loadLevel(filename: string, user: MRE.User, editor: boolean = true){
+        let relativePath = `levels/${filename}.json`
+        if (!fs.existsSync(`./public/${relativePath}`)){
+            user.prompt("No such file");
+            return;
+        }
+
+        let filePath = `${this.baseUrl}/${relativePath}`;
+        let level: EngLevelData = await fetchJSON(filePath);
+        level.forEach((d, _) => {
+            this.spawnItem(this.engDatabase.idToWord(d.id), d.transform, editor);
+        });
+    }
+
+    private clearLevel(){
+        this.highlightBoxes.forEach((_,k) => {
+            this.deleteItem(k);
+        })
     }
 }
