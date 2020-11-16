@@ -110,3 +110,12 @@ export class KanjiDatabase{
         this._kanji = Object.keys(this._dictionary).sort((a,b)=>{return this._dictionary[a].id - this._dictionary[b].id});
     }
 }
+
+export class EngDatabase{
+    private _words: any;
+
+    get words() {return this._words};
+    constructor(){
+        this._words = require('../public/eng/english.json');
+    }
+}

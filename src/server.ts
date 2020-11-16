@@ -2,6 +2,7 @@ import { log, WebHost, Permissions } from '@microsoft/mixed-reality-extension-sd
 import { resolve as resolvePath } from 'path';
 import Hanzi from './app';
 import Kanji from './kanji';
+import Eng from './eng';
 
 log.enable('app');
 
@@ -16,12 +17,15 @@ const server = new WebHost({
 });
 
 const isKanji = (process.env['KANJI'] !== undefined) ? true : false;
+const isEng = (process.env['ENG'] !== undefined) ? true : false;
 
 // Handle new application sessions
-if(!isKanji){
-   server.adapter.onConnection((context, params) => new Hanzi(context, params, server.baseUrl));
-}else{
+if(isEng){
+   server.adapter.onConnection((context, params) => new Eng(context, params, server.baseUrl));
+}else if(isKanji){
    server.adapter.onConnection((context, params) => new Kanji(context, params, server.baseUrl));
+}else{
+   server.adapter.onConnection((context, params) => new Hanzi(context, params, server.baseUrl));
 }
 
 export default server;
