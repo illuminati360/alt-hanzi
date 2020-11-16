@@ -15,7 +15,7 @@ const MODEL_SCALE = 1;
 const MODEL_ROTATION = MRE.Quaternion.FromEulerAngles(0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians, 0 * MRE.DegreesToRadians);
 const RADIUS = 0.09;
 
-const SCALE_STEP = 0.025/1000;
+const SCALE_STEP = 0.025;
 
 const gltfBoundingBox = require('gltf-bounding-box');
 
@@ -415,7 +415,7 @@ export default class English {
         this.numberInput.positionMenu({x: 0, y});
 
         this.numberInput.onIncrease(()=>{
-            if (!['glossary', 'gojuon_menu', 'dakuon_menu'].includes(this.currentScene)) { return; }
+            if (!['glossary_menu'].includes(this.currentScene)) { return; }
             if (this.highlightedActor != null){
                 let box = this.highlightBoxes.get(this.highlightedActor);
                 let scale = box.transform.local.scale;
@@ -427,7 +427,7 @@ export default class English {
         });
 
         this.numberInput.onDecrease(()=>{
-            if (!['glossary', 'gojuon_menu', 'dakuon_menu'].includes(this.currentScene)) { return; }
+            if (!['glossary_menu'].includes(this.currentScene)) { return; }
             if (this.highlightedActor != null){
                 let box = this.highlightBoxes.get(this.highlightedActor);
                 let scale = box.transform.local.scale;
@@ -438,7 +438,7 @@ export default class English {
             }
         });
         this.numberInput.onEdit((user)=>{
-            if (!['glossary', 'gojuon_menu', 'dakuon_menu'].includes(this.currentScene)) { return; }
+            if (!['glossary_menu'].includes(this.currentScene)) { return; }
             if (this.highlightedActor != null){
                 user.prompt("Change scale to", true).then((dialog) => {
                     if (dialog.submitted) {
