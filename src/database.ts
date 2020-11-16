@@ -66,3 +66,47 @@ export class PinyinDatabase{
         return true;
     }
 }
+
+export enum KanaType {
+    KATA = "kata",
+    HIRA = "hira",
+    ROMA = "roma"
+}
+
+export class KanjiDatabase{
+    private components: any;
+    private _gojuon: any;
+    private _dakuon: any;
+    private _youon: any;
+    private _kanji: any;
+    private _dictionary: any;
+    private _toRoma: any;
+
+    get kanji() {return this._kanji};
+    get dictionary() {return this._dictionary};
+    get gojuon() {return this._gojuon};
+    get dakuon() {return this._dakuon};
+    get youon() {return this._youon};
+    public roma(char: string) {return (this._toRoma[char] !== undefined) ? this._toRoma[char] : ''};
+    public isKanji(char: string) {return this._kanji.includes(char);}
+
+    constructor(){
+        let kana = require('../public/json/kana.json');
+        this._gojuon = kana.goju;
+        this._dakuon = kana.daku;
+        this._youon = kana.you;
+
+        this._toRoma = {};
+        [ ...this._gojuon.kana, ...this._dakuon.kana, ...this._youon.kana ].forEach(r => {
+            r.forEach((k: any) => {
+                [KanaType.HIRA, KanaType.KATA, KanaType.ROMA].forEach((t: string) =>{
+                    let char = k[t];
+                    this._toRoma[char] = k[KanaType.ROMA];
+                });
+            })
+        });
+
+        this._dictionary = require('../public/json/kanji.json');
+        this._kanji = Object.keys(this._dictionary).sort((a,b)=>{return this._dictionary[a].id - this._dictionary[b].id});
+    }
+}

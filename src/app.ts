@@ -1094,7 +1094,7 @@ export default class Hanzi {
         let s = this.sprite[text];
         if (s === undefined) return;
         let m = this.root.startSound(this.pinyinSound.id, {
-            volume: 0.5,
+            volume: 1,
             rolloffStartDistance: 100,
             time: parseInt(s[0])/1000
         });

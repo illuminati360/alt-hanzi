@@ -388,6 +388,11 @@ export class GridMenu {
         this._menu.transform.local.position.y += offset.y;
     }
 
+    public positionMenu(position: {x: number, y: number}){
+        this._menu.transform.local.position.x = position.x;
+        this._menu.transform.local.position.y = position.y;
+    }
+
     public offsetLabels(offset: {x: number, y: number}){
         this.buttons.forEach(b=>{b.offsetLabel(offset)});
     }

@@ -1,6 +1,7 @@
 import { log, WebHost, Permissions } from '@microsoft/mixed-reality-extension-sdk';
 import { resolve as resolvePath } from 'path';
-import Numlock from './app';
+import Hanzi from './app';
+import Kanji from './kanji';
 
 log.enable('app');
 
@@ -14,7 +15,13 @@ const server = new WebHost({
    optionalPermissions: [Permissions.UserInteraction]
 });
 
+const isKanji = (process.env['KANJI'] !== undefined) ? true : false;
+
 // Handle new application sessions
-server.adapter.onConnection((context, params) => new Numlock(context, params, server.baseUrl));
+if(!isKanji){
+   server.adapter.onConnection((context, params) => new Hanzi(context, params, server.baseUrl));
+}else{
+   server.adapter.onConnection((context, params) => new Kanji(context, params, server.baseUrl));
+}
 
 export default server;
